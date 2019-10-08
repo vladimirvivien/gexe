@@ -23,13 +23,28 @@ func TestEchoRun(t *testing.T) {
 		},
 
 		{
+			name: "simple multi-line",
+			cmdStr: func() string {
+				return `echo 
+				HELLO WORLD!
+				`
+			},
+			exec: func(cmd string) {
+				e := New()
+				result := e.Run(cmd)
+				if result != "HELLO WORLD!" {
+					t.Fatal("Unexpected command result:", result)
+				}
+			},
+		},
+
+		{
 			name: "simple with expansion",
 			cmdStr: func() string {
 				return "echo $MSG"
 			},
 			exec: func(cmd string) {
-				e := New()
-				e.Var("MSG", "Hello World")
+				e := New().Var("MSG=Hello World")
 				result := e.Run(cmd)
 				if result != e.Val("MSG") {
 					t.Fatal("Unexpected command result:", result)

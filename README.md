@@ -1,57 +1,79 @@
-# Echo (v0.0.1-alpha.0)
-An abstraction layer for the Go exec package to script shell-like.
+# `echo` (v0.0.1-alpha.0)
+A Go pacakge with script-like functionalities!
 
 ## Start
 Create a session:
 ```
 e := echo.New()
 ```
+Then configure your session:
+```
+e.Conf.SetPanicOnError(true)
+```
 
 ## Variables
-Local variables used in current `echo` session can be declared using `e.Var()`. Values can be made visible to launched external process using `e.Export()`. Both methods support value expansion as shown below:
-```
-e.Var("Foo", "Bar")
-e.Var("Fuzz", "${Foo}")
-e.Export("Bazz", "$Fuzz") 
-```
 
-## Array
-A space-separated list can be turned into a native Go `[]string` using the `e.Arr()` method as shown:
+### Var, SetVar
+Echo supports storing values that can be accessed using method `e.Var()` for the duration of a session:
 ```
-for _, val := range e.Arr("val0 val1 val2 val3"){  
+e.Var("Foo=Bar")
+e.Var("Fuzz=${Foo} Buzz=Bazz") 
+```
+Method `e.SetVar(name, value string)` saves a named value one at a time.
+
+### Env, SetEnv
+Values can be made visible as environment variables for externally launced commands using method `e.Env()`. Both methods support value expansion as shown below:
+```
+e.Env("Foo=Bar")
+e.Env("Fuzz=${Foo} Buzz=Bazz")
+e.Env("BAZZ=$HOME")
+```
+Method `e.SetEnv(name, value string)` sets environment variables one value at a time.
+
+### Expansion
+All `echo` methods support variable value expansion using `$name` or `${name}` which are automatically replaced with the value of the named variable.
+
+## Slices
+
+### Split
+A space-separated list can be turned into a native Go `[]string` using the `e.Split()` method as shown:
+```
+e.SetVar("list", "item3 item4")
+for _, val := range e.Split("item0 item1 item2 $list"){  
     ...
 }
 ```
 
-An additional separator string may be provided to `e.Arr()`:
+An additional separator value may be provided to `e.Split()`:
 ```
-for _, val := range e.Arr("Hello,World,!", ","){  
+e.SetVar("list", "item3;item4")
+for _, val := range e.Arr("Hello;World;!;$list", ";"){  
     fmt.Println(val)
 }
 ```
-Method `e.Glob()` expands the provided shell file pattern into a slice of matching file names:
+
+### Glob
+Method `e.Glob()` expands the provided shell path pattern into a slice of matching file/directory names:
 ```
 for _, f := range e.Glob("$HOME/go/src/*.com") {
   fmt.Println(f)
 }
 ```
 
-## Run
-External commands can be launched using the `e.Run()` method by passing a command string with its arguments as would be done in a shell.  The `Run` method supports string expansion as shown below:
+## External processes
+
+### Run
+External commands can be launched using the `e.Run()` method by passing a command and its arguments as a single string:
 ```
-e.Var("salutation", "Hello")
-e.Var("name", "Vladimir")
-e.Var("MSG", "$salutation $name")
-result := e.Run("echo $MSG")
+fmt.Println(e.Var("greeting=Hello name=Vladimir").Run("echo $greeting $name"))
 ```
 
-If the result must be printed to `stdout` immediately, use `e.Runout(...)` instead:
+Method `e.Runout` automatically prints the result to sdtdout for you:
 ```
-e.Runout("We are all done here!")
+e.Runout("echo no place like $HOME")
 ```
 
-### Other Run-related Methods
-The followings returns Process information after each run:
+### Process run-related methods
 ```
 e.RExitCode() int
 e.RStatus() 
@@ -80,12 +102,12 @@ e.Rel()
 e.Base()
 e.Dir()
 e.PathSym()
-e.PathExt()
+e.Ext()
 e.PathJoin()
 e.PathMatched()
-e.IsPathExit()
-e.IsPathReg()
-e.IsPathDir()
+e.IsExit()
+e.IsReg()
+e.IsDir()
 e.Mkdir()
 e.Chown()
 e.Chmod()
@@ -113,3 +135,11 @@ e.Home()
 e.Gid()
 e.Uid()
 ```
+
+## Flagset
+...
+
+## More to come
+
+## License
+MIT

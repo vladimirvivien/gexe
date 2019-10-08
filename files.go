@@ -7,9 +7,10 @@ import (
 
 // PathAbs returns the absolute representation for path.
 // Returns empty string if it fails for any reason.
-func (e *echo) PathAbs(path string) string {
+func (e *echo) Abs(path string) string {
 	abs, err := filepath.Abs(os.Expand(path, e.Val))
 	if err != nil {
+		e.shouldPanic(err.Error())
 		return ""
 	}
 	return abs
@@ -17,21 +18,22 @@ func (e *echo) PathAbs(path string) string {
 
 // PathRel returns path that is relative to base/target.
 // Returns an empty path if error.
-func (e *echo) PathRel(base string, target string) string {
+func (e *echo) Rel(base string, target string) string {
 	abs, err := filepath.Rel(os.Expand(base, e.Val), os.Expand(target, e.Val))
 	if err != nil {
+		e.shouldPanic(err.Error())
 		return ""
 	}
 	return abs
 }
 
 // PathBase returns the last portion (or name) of a path.
-func (e *echo) PathBase(path string) string {
+func (e *echo) Base(path string) string {
 	return filepath.Base(os.Expand(path, e.Val))
 }
 
 // PathDir returns parent path portion of a path (without the Base).
-func (e *echo) PathDir(path string) string {
+func (e *echo) Dir(path string) string {
 	return filepath.Dir(os.Expand(path, e.Val))
 }
 
@@ -45,13 +47,14 @@ func (e *echo) PathSplit(path string) []string {
 func (e *echo) PathSym(path string) string {
 	link, err := filepath.EvalSymlinks(os.Expand(path, e.Val))
 	if err != nil {
+		e.shouldPanic(err.Error())
 		return ""
 	}
 	return link
 }
 
 // PathExt returns extension part of path
-func (e *echo) PathExt(path string) string {
+func (e *echo) Ext(path string) string {
 	return filepath.Ext(os.Expand(path, e.Val))
 }
 
@@ -73,14 +76,17 @@ func (e *echo) PathMatched(pattern, path string) bool {
 }
 
 // IsAbs returns true if path is an absolute path
-func (e *echo) IsPathAbs(path string) bool {
+func (e *echo) IsAbs(path string) bool {
 	return filepath.IsAbs(os.Expand(path, e.Val))
 }
 
 // IsPathExist returns true if file is 1) accessible 2) exists.
 // All other conditions returns false.
-func (e *echo) IsPathExist(path string) bool {
+func (e *echo) IsExist(path string) bool {
 	if _, err := os.Stat(os.Expand(path, e.Val)); err != nil {
+		if !os.IsNotExist(err) {
+			e.shouldPanic(err.Error())
+		}
 		return false
 	}
 	return true
@@ -88,7 +94,7 @@ func (e *echo) IsPathExist(path string) bool {
 
 // IsPathReg returns true if path is a regular file.
 // All other cases (errors) will return false.
-func (e *echo) IsPathReg(path string) bool {
+func (e *echo) IsReg(path string) bool {
 	info, err := os.Stat(os.Expand(path, e.Val))
 	if err != nil {
 		return false
@@ -99,7 +105,7 @@ func (e *echo) IsPathReg(path string) bool {
 
 // IsPathDir returns true if path is a directory.
 // All other cases (errors) will return false.
-func (e *echo) IsPathDir(path string) bool {
+func (e *echo) IsDir(path string) bool {
 	info, err := os.Stat(os.Expand(path, e.Val))
 	if err != nil {
 		return false
