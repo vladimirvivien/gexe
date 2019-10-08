@@ -6,11 +6,17 @@ import (
 	"github.com/vladimirvivien/echo"
 )
 
+var (
+	e = echo.New()
+)
+
+func init() {
+	e.Conf.SetPanicOnErr(false)
+}
+
 func main() {
-	e := echo.New()
-	e.Var("MSG", "Hello,World,!")
-	fmt.Println(e.Eval("I am in $PWD"))
-	for _, msg := range e.Arr("$MSG", ",") {
-		fmt.Println(msg)
+	e.Var("MYHOME=$HOME")
+	if e.IsExist("$MYHOME") {
+		fmt.Println(e.Eval("I found my $HOME"))
 	}
 }

@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
 )
 
-var spaceRgx = regexp.MustCompile("\\s")
-
 func (e *echo) Run(cmdStr string) string {
+	cmdStr = lineRgx.ReplaceAllString(cmdStr, " ")
 	cmdName, args := parseCmdStr(os.Expand(cmdStr, e.Val))
 	return cmdRun(cmdName, args...)
 }
