@@ -9,7 +9,7 @@ import (
 // Env declares process environment variables using
 // a multi-line space-separated list of KEY=VAL format:
 // i.e. GOOS=linux GOARCH=amd64
-func (e *echo) Env(val string) *echo {
+func (e *Echo) Env(val string) *Echo {
 	vars := e.declareVars(val)
 	for k, v := range vars {
 		if err := os.Setenv(k, v); err != nil {
@@ -22,7 +22,7 @@ func (e *echo) Env(val string) *echo {
 }
 
 // SetEnv declares a global process environment variable.
-func (e *echo) SetEnv(name, value string) *echo {
+func (e *Echo) SetEnv(name, value string) *Echo {
 	if err := os.Setenv(name, os.Expand(value, e.Val)); err != nil {
 		e.shouldPanic(err.Error())
 	} else {
@@ -34,7 +34,7 @@ func (e *echo) SetEnv(name, value string) *echo {
 // Var declares variables used during current echo session using
 // a multi-line space-separated list of KEY=VAL format:
 // i.e. foo=bar fuzz=buzz
-func (e *echo) Var(val string) *echo {
+func (e *Echo) Var(val string) *Echo {
 	vars := e.declareVars(val)
 	for k, v := range vars {
 		os.Unsetenv(k)
@@ -44,14 +44,14 @@ func (e *echo) Var(val string) *echo {
 }
 
 // SetVar declares an echo session local variable.
-func (e *echo) SetVar(name, value string) *echo {
+func (e *Echo) SetVar(name, value string) *Echo {
 	os.Unsetenv(name)
 	e.vars[name] = os.Expand(value, e.Val)
 	return e
 }
 
 // Val retrieves a session or environment variable
-func (e *echo) Val(name string) string {
+func (e *Echo) Val(name string) string {
 	if val, ok := e.vars[name]; ok {
 		return val
 	}
@@ -61,11 +61,11 @@ func (e *echo) Val(name string) string {
 // Eval returns the string str with its content expanded
 // with variable values i.e. Eval("I am $HOME") returns
 // "I am <user home path>"
-func (e *echo) Eval(str string) string {
+func (e *Echo) Eval(str string) string {
 	return os.Expand(str, e.Val)
 }
 
-func (e *echo) declareVars(val string) map[string]string {
+func (e *Echo) declareVars(val string) map[string]string {
 	evaled := e.Eval(val)
 
 	// parse lines into envs = []{"KEY0=VAL0", "KEY1=VAL1",...}

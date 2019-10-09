@@ -11,7 +11,7 @@ func TestEchoRun(t *testing.T) {
 		{
 			name: "simple run",
 			cmdStr: func() string {
-				return "echo HELLO WORLD!"
+				return `echo "HELLO WORLD!"`
 			},
 			exec: func(cmd string) {
 				e := New()
@@ -26,7 +26,7 @@ func TestEchoRun(t *testing.T) {
 			name: "simple multi-line",
 			cmdStr: func() string {
 				return `echo 
-				HELLO WORLD!
+				"HELLO WORLD!"
 				`
 			},
 			exec: func(cmd string) {
