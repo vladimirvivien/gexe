@@ -8,13 +8,17 @@ import (
 	"strings"
 )
 
-func (e *echo) Run(cmdStr string) string {
+// Run parses and executes command cmdStr and returns the result
+// from stdout or stderr
+func (e *Echo) Run(cmdStr string) string {
 	cmdStr = lineRgx.ReplaceAllString(cmdStr, " ")
-	cmdName, args := parseCmdStr(os.Expand(cmdStr, e.Val))
-	return cmdRun(cmdName, args...)
+	e.shouldLog(cmdStr)
+	words := e.splitWords(e.Eval(cmdStr))
+	return cmdRun(words[0], words[1:]...)
 }
 
-func (e *echo) Runout(cmdStr string) {
+// Runout parses and executes command cmdStr and prints out the result
+func (e *Echo) Runout(cmdStr string) {
 	fmt.Print(os.Expand(e.Run(cmdStr), e.Val))
 }
 

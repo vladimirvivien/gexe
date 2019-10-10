@@ -8,18 +8,18 @@ import (
 func TestEchoVar(t *testing.T) {
 	tests := []struct {
 		name string
-		echo func() *echo
-		test func(*echo)
+		echo func() *Echo
+		test func(*Echo)
 	}{
 		{
 			name: "SetVar",
-			echo: func() *echo {
+			echo: func() *Echo {
 				e := New()
 				e.SetVar("foo", "bar")
 				e.SetVar("fuzz", "buzz")
 				return e
 			},
-			test: func(e *echo) {
+			test: func(e *Echo) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -30,12 +30,12 @@ func TestEchoVar(t *testing.T) {
 		},
 		{
 			name: "Var with single line",
-			echo: func() *echo {
+			echo: func() *Echo {
 				e := New()
 				e.Var("foo=bar fuzz=buzz")
 				return e
 			},
-			test: func(e *echo) {
+			test: func(e *Echo) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -46,12 +46,12 @@ func TestEchoVar(t *testing.T) {
 		},
 		{
 			name: "Var with multilines line",
-			echo: func() *echo {
+			echo: func() *Echo {
 				e := New()
 				e.Var("bazz=azz foo=bar\nfuzz=buzz")
 				return e
 			},
-			test: func(e *echo) {
+			test: func(e *Echo) {
 				if e.Val("bazz") != "azz" {
 					t.Fatal("unexpected value:", e.Val("bazz"))
 				}
@@ -65,13 +65,13 @@ func TestEchoVar(t *testing.T) {
 		},
 		{
 			name: "Var with expansion",
-			echo: func() *echo {
+			echo: func() *Echo {
 				e := New()
 				e.SetVar("bazz", "dazz")
 				e.Var("foo=${bazz} fuzz=buzz")
 				return e
 			},
-			test: func(e *echo) {
+			test: func(e *Echo) {
 				if e.Val("foo") != "dazz" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -82,13 +82,13 @@ func TestEchoVar(t *testing.T) {
 		},
 		{
 			name: "Var overwrite Env",
-			echo: func() *echo {
+			echo: func() *Echo {
 				os.Setenv("foo", "fuzz")
 				e := New()
 				e.SetVar("foo", "bar")
 				return e
 			},
-			test: func(e *echo) {
+			test: func(e *Echo) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -109,18 +109,18 @@ func TestEchoVar(t *testing.T) {
 func TestEchoEnv(t *testing.T) {
 	tests := []struct {
 		name string
-		echo func() *echo
-		test func(*echo)
+		echo func() *Echo
+		test func(*Echo)
 	}{
 		{
 			name: "SetEnv",
-			echo: func() *echo {
+			echo: func() *Echo {
 				e := New()
 				e.SetEnv("foo", "bar")
 				e.SetEnv("fuzz", "buzz")
 				return e
 			},
-			test: func(e *echo) {
+			test: func(e *Echo) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -131,12 +131,12 @@ func TestEchoEnv(t *testing.T) {
 		},
 		{
 			name: "Env with single line",
-			echo: func() *echo {
+			echo: func() *Echo {
 				e := New()
 				e.Env("foo=bar fuzz=buzz")
 				return e
 			},
-			test: func(e *echo) {
+			test: func(e *Echo) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -147,12 +147,12 @@ func TestEchoEnv(t *testing.T) {
 		},
 		{
 			name: "Env with multilines line",
-			echo: func() *echo {
+			echo: func() *Echo {
 				e := New()
 				e.Env("bazz=azz foo=bar\nfuzz=buzz")
 				return e
 			},
-			test: func(e *echo) {
+			test: func(e *Echo) {
 				if e.Val("bazz") != "azz" {
 					t.Fatal("unexpected value:", e.Val("bazz"))
 				}
@@ -166,13 +166,13 @@ func TestEchoEnv(t *testing.T) {
 		},
 		{
 			name: "Env with expansion",
-			echo: func() *echo {
+			echo: func() *Echo {
 				e := New()
 				e.SetVar("bazz", "dazz")
 				e.Env("foo=${bazz} fuzz=buzz")
 				return e
 			},
-			test: func(e *echo) {
+			test: func(e *Echo) {
 				if e.Val("foo") != "dazz" && e.Val("fuzz") != "buzz" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -183,13 +183,13 @@ func TestEchoEnv(t *testing.T) {
 		},
 		{
 			name: "Env overwrite Var",
-			echo: func() *echo {
+			echo: func() *Echo {
 				e := New()
 				e.vars["foo"] = "fuzz"
 				e.SetEnv("foo", "bar")
 				return e
 			},
-			test: func(e *echo) {
+			test: func(e *Echo) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
