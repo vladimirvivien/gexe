@@ -112,3 +112,50 @@ func (e *Echo) IsDir(path string) bool {
 	}
 	return info.Mode().IsDir()
 }
+
+// Mkdirs creates one or more space-separated directories using the optional filemods.
+// If no mode is provided, it defaults to 0777. When mode is provided only
+// modes[0] is applied.
+func (e *Echo) Mkdirs(paths string, modes ...uint32) {
+	for _, path := range e.Split(paths) {
+		var mode uint32
+		switch {
+		case len(modes) >= 1:
+			mode = modes[0]
+		default:
+			mode = 0777
+		}
+
+		if err := os.MkdirAll(e.Eval(path), os.FileMode(mode)); err != nil {
+			e.shouldPanic(err.Error())
+			e.shouldLog(err.Error())
+		}
+	}
+}
+
+// Rmdirs removes one or more space-separated directories
+func (e *Echo) Rmdirs(paths string) {
+	for _, path := range e.Split(paths) {
+		if err := os.RemoveAll(path); err != nil {
+			e.shouldPanic(err.Error())
+			e.shouldLog(err.Error())
+		}
+	}
+}
+
+// AreSame tests files at path0 and path to check if they are the same
+func (e *Echo) AreSame(path0, path1 string) bool {
+	info0, err := os.Stat(path0)
+	if err != nil {
+		e.shouldPanic(err.Error())
+		e.shouldLog(err.Error())
+	}
+
+	info1, err := os.Stat(path1)
+	if err != nil {
+		e.shouldPanic(err.Error())
+		e.shouldLog(err.Error())
+	}
+
+	return os.SameFile(info0, info1)
+}

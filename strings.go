@@ -28,6 +28,7 @@ func (e *Echo) Streq(val0, val1 string) bool {
 	)
 }
 
+// Trim removes spaces around a val
 func (e *Echo) Trim(val string) string {
 	return strings.TrimSpace(os.Expand(val, e.Val))
 }

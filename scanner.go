@@ -52,11 +52,9 @@ func scanQuotedWords(data []byte, atEOF bool) (advance int, token []byte, err er
 			return i + width, data[start:i], nil
 
 		// scan outside of quotes
-		case !isQuote(r):
-			if !inQuote {
-				if unicode.IsSpace(r) {
-					return i + width, data[start:i], nil
-				}
+		case !isQuote(r) && !inQuote:
+			if unicode.IsSpace(r) {
+				return i + width, data[start:i], nil
 			}
 		}
 	}

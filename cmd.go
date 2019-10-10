@@ -12,9 +12,7 @@ import (
 // from stdout or stderr
 func (e *Echo) Run(cmdStr string) string {
 	cmdStr = lineRgx.ReplaceAllString(cmdStr, " ")
-	if e.Conf.isVerbose() {
-		fmt.Println(cmdStr)
-	}
+	e.shouldLog(cmdStr)
 	words := e.splitWords(e.Eval(cmdStr))
 	return cmdRun(words[0], words[1:]...)
 }
