@@ -1,5 +1,5 @@
-# `echo` (v0.0.1-alpha.0)
-A Go pacakge with script-like functionalities!
+# `Echo$` 
+Script-like functionalities wrapped in the rigid safety of Go!
 
 ## Start
 Create a session:
