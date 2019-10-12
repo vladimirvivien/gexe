@@ -38,20 +38,28 @@ func scanQuotedWords(data []byte, atEOF bool) (advance int, token []byte, err er
 
 	// scan words
 	inQuote := false
+	var lastQuote rune
 	for width, i := 0, start; i < len(data); i += width {
 		var r rune
 		r, width = utf8.DecodeRune(data[i:])
 		switch {
 		// scan quoted string
 		case isQuote(r):
+			// start quoted value
 			if !inQuote {
 				inQuote = true
+				lastQuote = r
 				start = start + width // dont include quote
 				continue
 			}
+			// handle nested quotes '"hello"'
+			if r != lastQuote {
+				continue
+			}
+			// encountered closing quote
 			return i + width, data[start:i], nil
 
-		// scan outside of quotes
+		// scan outside of quoted values
 		case !isQuote(r) && !inQuote:
 			if unicode.IsSpace(r) {
 				return i + width, data[start:i], nil
