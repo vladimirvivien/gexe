@@ -8,7 +8,7 @@ import (
 // Echo represents a new Echo session
 type Echo struct {
 	vars map[string]string
-	Conf *conf
+	*Conf
 }
 
 var (
@@ -19,46 +19,22 @@ var (
 // New creates a new Echo session
 func New() *Echo {
 	e := &Echo{vars: make(map[string]string)}
-	e.Conf = &conf{e: e}
+	e.Conf = new(Conf)
 	return e
 }
 
 func (e *Echo) shouldPanic(msg string) {
-	if e.Conf.isPanicOnErr() {
+	if e.Conf.IsPanicOnErr() {
 		panic(msg)
 	}
 }
 
 func (e *Echo) shouldLog(msg string) {
-	if e.Conf.isVerbose() {
+	if e.Conf.IsVerbose() {
 		fmt.Println(msg)
 	}
 }
 
 func (e *Echo) String() string {
 	return fmt.Sprintf("Vars[%#v]", e.vars)
-}
-
-type conf struct {
-	e          *Echo
-	panicOnErr bool
-	verbose    bool
-}
-
-func (c *conf) SetPanicOnErr(val bool) *Echo {
-	c.panicOnErr = val
-	return c.e
-}
-
-func (c *conf) isPanicOnErr() bool {
-	return c.panicOnErr
-}
-
-func (c *conf) SetVerbose(val bool) *Echo {
-	c.verbose = val
-	return c.e
-}
-
-func (c *conf) isVerbose() bool {
-	return c.verbose
 }
