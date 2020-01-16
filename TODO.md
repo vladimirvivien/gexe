@@ -1,15 +1,12 @@
 ## TODO
-## v0.0.1-alpha.2
-- Fix nested quoted string parsing (i.e. '"value"' will fail)
 
 ## v0.0.1-alpha.3
-* [ ] Enhance quotation support for Run
-
+* [ ] Refactor configuration storage
+* [ ] Store and expose proc information for child processes
 
 ## v0.0.1-alpha.4
 * [ ] Default shell: sets a default shell for method Run (`e.Conf.Shell()`).
-* [ ] Store process information for child process
-* [ ] Store process information for Echo
+* [ ] Enhanced text parsing with parameter expansion escape
 
 ## v0.0.1-alpha.5
 * [ ] Exit - `e.Exit(code, msgs...string)` (exit prog)
