@@ -7,8 +7,9 @@ import (
 
 // Echo represents a new Echo session
 type Echo struct {
-	vars map[string]string
-	*Conf
+	vars map[string]string // session var
+	Conf *Config           // session config
+	Proc *ProcResult       // last executed proc
 }
 
 var (
@@ -19,7 +20,7 @@ var (
 // New creates a new Echo session
 func New() *Echo {
 	e := &Echo{vars: make(map[string]string)}
-	e.Conf = new(Conf)
+	e.Conf = new(Config)
 	return e
 }
 
