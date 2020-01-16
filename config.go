@@ -1,29 +1,29 @@
 package echo
 
-// Conf stores configuration
-type Conf struct {
+// Config stores configuration
+type Config struct {
 	panicOnErr bool
 	verbose    bool
 }
 
 // SetPanicOnErr panics program on any error
-func (c *Conf) SetPanicOnErr(val bool) *Conf {
+func (c *Config) SetPanicOnErr(val bool) *Config {
 	c.panicOnErr = val
 	return c
 }
 
 // IsPanicOnErr returns panic-on-error flag
-func (c *Conf) IsPanicOnErr() bool {
+func (c *Config) IsPanicOnErr() bool {
 	return c.panicOnErr
 }
 
 // SetVerbose sets verbosity
-func (c *Conf) SetVerbose(val bool) *Conf {
+func (c *Config) SetVerbose(val bool) *Config {
 	c.verbose = val
 	return c
 }
 
 // IsVerbose returns verbosity flag
-func (c *Conf) IsVerbose() bool {
+func (c *Config) IsVerbose() bool {
 	return c.verbose
 }

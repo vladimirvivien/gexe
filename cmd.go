@@ -3,52 +3,66 @@ package echo
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 )
 
-// Run parses and executes command cmdStr and returns the result
-// from stdout or stderr
-func (e *Echo) Run(cmdStr string) string {
+// RunProc parses and executes cmdStr and returns a process result.
+// Use this to have access to process result informoation.
+func (e *Echo) RunProc(cmdStr string) *ProcResult {
 	cmdStr = lineRgx.ReplaceAllString(cmdStr, " ")
 	e.shouldLog(cmdStr)
-	words := e.splitWords(e.Eval(cmdStr))
-	return cmdRun(words[0], words[1:]...)
+
+	proc := e.StartProc(cmdStr)
+	proc.Wait()
+	return proc
+}
+
+// StartProc concurrently starts a process
+func (e *Echo) StartProc(cmdStr string) *ProcResult {
+	return e.startProc(cmdStr)
+}
+
+// Run parses and executes cmdStr and returns the result as a string.
+// This uses RunProc and extracts the result as a string.
+func (e *Echo) Run(cmdStr string) string {
+	p := e.RunProc(cmdStr)
+	if p.Err() != nil {
+		e.shouldLog(p.Err().Error())
+		e.shouldPanic(p.Err().Error())
+		return ""
+	}
+
+	data, err := ioutil.ReadAll(p.Out())
+	if err != nil {
+		e.shouldLog(err.Error())
+		e.shouldPanic(err.Error())
+		return ""
+	}
+
+	return os.Expand(strings.TrimSpace(string(data)), e.Val)
 }
 
 // Runout parses and executes command cmdStr and prints out the result
 func (e *Echo) Runout(cmdStr string) {
-	fmt.Print(os.Expand(e.Run(cmdStr), e.Val))
+	fmt.Print(e.Run(cmdStr))
 }
 
-func parseCmdStr(cmdStr string) (cmdName string, args []string) {
-	args = []string{}
-	parts := spaceRgx.Split(cmdStr, -1)
-	if len(parts) == 0 {
-		return
-	}
-	if len(parts) == 1 {
-		cmdName = parts[0]
-		return
-	}
-	cmdName = parts[0]
-	args = parts[1:]
-	return
-}
+func (e *Echo) startProc(cmdStr string) *ProcResult {
+	words := e.splitWords(e.Eval(cmdStr))
 
-func prepCmd(cmd string, args ...string) (*exec.Cmd, *bytes.Buffer) {
 	output := new(bytes.Buffer)
-	command := exec.Command(cmd, args...)
+	command := exec.Command(words[0], words[1:]...)
 	command.Stdout = output
 	command.Stderr = output
-	return command, output
-}
 
-func cmdRun(cmd string, args ...string) string {
-	command, output := prepCmd(cmd, args...)
-	if err := command.Run(); err != nil {
-		return fmt.Sprintf("command error: %s", err)
+	if err := command.Start(); err != nil {
+		e.Proc = &ProcResult{cmd: command, err: err, state: command.ProcessState}
+		return e.Proc
 	}
-	return strings.TrimSpace(output.String())
+
+	e.Proc = &ProcResult{cmd: command, state: command.ProcessState, output: output}
+	return e.Proc
 }
