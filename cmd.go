@@ -3,15 +3,13 @@ package echo
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 )
 
-// RunProc parses and executes cmdStr and returns a process result.
-// Use this to have access to process result informoation.
-func (e *Echo) RunProc(cmdStr string) *ProcResult {
+// RunProc executes command in cmdStr and waits for the result.
+// It returns a *Proc with information about the executed process.
+func (e *Echo) RunProc(cmdStr string) *Proc {
 	cmdStr = lineRgx.ReplaceAllString(cmdStr, " ")
 	e.shouldLog(cmdStr)
 
@@ -20,8 +18,9 @@ func (e *Echo) RunProc(cmdStr string) *ProcResult {
 	return proc
 }
 
-// StartProc concurrently starts a process
-func (e *Echo) StartProc(cmdStr string) *ProcResult {
+// StartProc executes the command in cmdStr and returns immediately
+// without waiting. Information about the running process is stored in *Proc.
+func (e *Echo) StartProc(cmdStr string) *Proc {
 	return e.startProc(cmdStr)
 }
 
@@ -35,14 +34,14 @@ func (e *Echo) Run(cmdStr string) string {
 		return ""
 	}
 
-	data, err := ioutil.ReadAll(p.Out())
-	if err != nil {
-		e.shouldLog(err.Error())
-		e.shouldPanic(err.Error())
+	data := p.Result()
+	if p.Err() != nil {
+		e.shouldLog(p.Err().Error())
+		e.shouldPanic(p.Err().Error())
 		return ""
 	}
 
-	return os.Expand(strings.TrimSpace(string(data)), e.Val)
+	return os.Expand(data, e.Val)
 }
 
 // Runout parses and executes command cmdStr and prints out the result
@@ -50,7 +49,7 @@ func (e *Echo) Runout(cmdStr string) {
 	fmt.Print(e.Run(cmdStr))
 }
 
-func (e *Echo) startProc(cmdStr string) *ProcResult {
+func (e *Echo) startProc(cmdStr string) *Proc {
 	words := e.splitWords(e.Eval(cmdStr))
 
 	output := new(bytes.Buffer)
@@ -59,10 +58,12 @@ func (e *Echo) startProc(cmdStr string) *ProcResult {
 	command.Stderr = output
 
 	if err := command.Start(); err != nil {
-		e.Proc = &ProcResult{cmd: command, err: err, state: command.ProcessState}
-		return e.Proc
+		proc := Proc{id: command.Process.Pid, cmd: command, err: err, state: command.ProcessState}
+		e.Procs = append(e.Procs, proc)
+		return &proc
 	}
 
-	e.Proc = &ProcResult{cmd: command, state: command.ProcessState, output: output}
-	return e.Proc
+	proc := Proc{id: command.Process.Pid, cmd: command, state: command.ProcessState, output: output}
+	e.Procs = append(e.Procs, proc)
+	return &proc
 }
