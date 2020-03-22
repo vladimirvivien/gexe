@@ -22,7 +22,7 @@ var (
 func New() *Echo {
 	e := &Echo{
 		vars: make(map[string]string),
-		Conf: new(Config),
+		Conf: &Config{escapeChar: '\\'},
 		Prog: new(prog),
 	}
 	return e
