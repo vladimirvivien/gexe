@@ -4,6 +4,7 @@ package echo
 type Config struct {
 	panicOnErr bool
 	verbose    bool
+	escapeChar rune
 }
 
 // SetPanicOnErr panics program on any error
@@ -26,4 +27,14 @@ func (c *Config) SetVerbose(val bool) *Config {
 // IsVerbose returns verbosity flag
 func (c *Config) IsVerbose() bool {
 	return c.verbose
+}
+
+// SetEscapeChar sets the escape char for command-line parsing
+func (c *Config) SetEscapeChar(r rune) *Config {
+	c.escapeChar = r
+	return c
+}
+
+func (c *Config) GetEscapeChar() rune {
+	return c.escapeChar
 }

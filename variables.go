@@ -46,7 +46,7 @@ func (e *Echo) Var(val string) *Echo {
 // SetVar declares an echo session local variable.
 func (e *Echo) SetVar(name, value string) *Echo {
 	os.Unsetenv(name)
-	e.vars[name] = os.Expand(value, e.Val)
+	e.vars[name] = e.expandVar(value, e.Val)
 	return e
 }
 
@@ -60,9 +60,9 @@ func (e *Echo) Val(name string) string {
 
 // Eval returns the string str with its content expanded
 // with variable values i.e. Eval("I am $HOME") returns
-// "I am <user home path>"
+// "I am </user/home/path>"
 func (e *Echo) Eval(str string) string {
-	return os.Expand(str, e.Val)
+	return e.expandVar(str, e.Val)
 }
 
 func (e *Echo) declareVars(val string) map[string]string {
