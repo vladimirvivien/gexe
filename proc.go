@@ -1,8 +1,8 @@
 package echo
 
 import (
+	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -11,11 +11,13 @@ import (
 
 // Proc stores process info
 type Proc struct {
-	id     int
-	err    error
-	state  *os.ProcessState
-	output io.Reader
-	cmd    *exec.Cmd
+	id         int
+	err        error
+	state      *os.ProcessState
+	output     *bytes.Buffer
+	stdoutPipe io.ReadCloser
+	stderrPipe io.ReadCloser
+	cmd        *exec.Cmd
 }
 
 // Peek attempts to read process state information
@@ -86,18 +88,39 @@ func (p *Proc) Err() error {
 	return p.err
 }
 
-// Out surfaces an io.Reader for proc result
+// Out surfaces an io.Reader for both stdout and stderr
+// Call after echo.RunProc
 func (p *Proc) Out() io.Reader {
 	return p.output
 }
 
-// Result streams output into a string
-func (p *Proc) Result() string {
-	data, err := ioutil.ReadAll(p.Out())
-	if err != nil {
-		p.err = err
-		return ""
+// StdOut is a io.Reader pipe for standard out
+// Can be streamed before Pro.Wait()
+func (p *Proc) StdOut() io.Reader {
+	return p.stdoutPipe
+}
+
+// StdErr is a io.Reader pipe for standard error
+// Can be streamed before Pro.Wait()
+func (p *Proc) StdErr() io.Reader {
+	return p.stdoutPipe
+}
+
+// Result surfaces standard output and error as a string
+// Call after echo.RunProc or, in the following sequence
+// echo.StartProc, proc.Result, proc.Wait
+func (p *Proc) Result() (result string) {
+	// copy from memory
+	if p.output != nil {
+		result = strings.TrimSpace(p.output.String())
+		return
 	}
 
-	return strings.TrimSpace(string(data))
+	p.output = &bytes.Buffer{}
+	sourceReader := io.MultiReader(p.StdOut(), p.StdErr())
+	if _, err := io.Copy(p.output, sourceReader); err != nil {
+		p.err = err
+	}
+	result = strings.TrimSpace(p.output.String())
+	return
 }
