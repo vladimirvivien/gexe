@@ -84,6 +84,7 @@ func (e *Echo) startProc(cmdStr string) *Proc {
 	proc := Proc{
 		id:         command.Process.Pid,
 		cmd:        command,
+		process:    command.Process,
 		state:      command.ProcessState,
 		stdoutPipe: pipeout,
 		stderrPipe: pipeerr,

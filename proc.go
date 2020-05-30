@@ -18,6 +18,12 @@ type Proc struct {
 	stdoutPipe io.ReadCloser
 	stderrPipe io.ReadCloser
 	cmd        *exec.Cmd
+	process    *os.Process
+}
+
+// Command returns the os/exec.Cmd that started the process
+func (p *Proc) Command() *exec.Cmd {
+	return p.cmd
 }
 
 // Peek attempts to read process state information
@@ -86,6 +92,14 @@ func (p *Proc) UserTime() time.Duration {
 // Err returns any execution error
 func (p *Proc) Err() error {
 	return p.err
+}
+
+// Kill halts the process
+func (p *Proc) Kill() *Proc {
+	if err := p.cmd.Process.Kill(); err != nil {
+		p.err = err
+	}
+	return p
 }
 
 // Out surfaces an io.Reader for both stdout and stderr
