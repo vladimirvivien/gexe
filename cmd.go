@@ -3,6 +3,7 @@ package echo
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 )
@@ -12,8 +13,18 @@ import (
 func (e *Echo) RunProc(cmdStr string) *Proc {
 	cmdStr = lineRgx.ReplaceAllString(cmdStr, " ")
 	e.shouldLog(cmdStr)
-
 	proc := e.StartProc(cmdStr)
+
+	if proc.Err() != nil {
+		return proc
+	}
+
+	proc.output = &bytes.Buffer{}
+	sourceReader := io.MultiReader(proc.StdOut(), proc.StdErr())
+	if _, err := io.Copy(proc.output, sourceReader); err != nil {
+		proc.err = err
+	}
+
 	proc.Wait()
 	return proc
 }
@@ -51,19 +62,32 @@ func (e *Echo) Runout(cmdStr string) {
 
 func (e *Echo) startProc(cmdStr string) *Proc {
 	words := e.splitWords(e.Eval(cmdStr))
-
-	output := new(bytes.Buffer)
 	command := exec.Command(words[0], words[1:]...)
-	command.Stdout = output
-	command.Stderr = output
+	pipeout, outerr := command.StdoutPipe()
+	pipeerr, errerr := command.StderrPipe()
+
+	if outerr != nil || errerr != nil {
+		err := fmt.Errorf("%s; %s", outerr, errerr)
+		e.shouldLog(err.Error())
+		e.shouldPanic(err.Error())
+		return &Proc{err: err}
+	}
 
 	if err := command.Start(); err != nil {
+		e.shouldLog(err.Error())
+		e.shouldPanic(err.Error())
 		proc := Proc{id: command.Process.Pid, cmd: command, err: err, state: command.ProcessState}
 		e.Procs = append(e.Procs, proc)
 		return &proc
 	}
 
-	proc := Proc{id: command.Process.Pid, cmd: command, state: command.ProcessState, output: output}
+	proc := Proc{
+		id:         command.Process.Pid,
+		cmd:        command,
+		state:      command.ProcessState,
+		stdoutPipe: pipeout,
+		stderrPipe: pipeerr,
+	}
 	e.Procs = append(e.Procs, proc)
 	return &proc
 }

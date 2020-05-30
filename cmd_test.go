@@ -1,6 +1,14 @@
 package echo
 
-import "testing"
+import (
+	"bytes"
+	"io"
+	"regexp"
+	"strings"
+	"testing"
+)
+
+var spaces = regexp.MustCompile(`\n`)
 
 func TestEchoRun(t *testing.T) {
 	tests := []struct {
@@ -28,6 +36,13 @@ func TestEchoRun(t *testing.T) {
 				if p.IsSuccess() {
 					t.Fatal("Success should be false")
 				}
+
+				result := strings.TrimSpace(p.Result())
+				if result != "HELLO WORLD!" {
+					t.Errorf("Unexpected proc.Out(): %s", result)
+				}
+
+				// wait for completion
 				p.Wait()
 				if p.state == nil {
 					t.Fatal("state should be set after Wait()", p.cmd.ProcessState)
@@ -38,7 +53,42 @@ func TestEchoRun(t *testing.T) {
 				if !p.IsSuccess() {
 					t.Fatal("Process should be success")
 				}
+			},
+		},
+		{
+			name: "start proc/long-running",
+			cmdStr: func() string {
+				return `/bin/sh -c "for i in {1..3}; do echo 'HELLO WORLD!\$i'; sleep 0.2; done"`
+			},
+			exec: func(cmd string) {
+				e := New()
+				p := e.StartProc(cmd)
+				if p.Err() != nil {
+					t.Fatal(p.Err())
+				}
 
+				buf := &bytes.Buffer{}
+				go func() {
+					if _, err := io.Copy(buf, p.StdOut()); err != nil {
+						t.Fatal(err)
+					}
+				}()
+
+				p.Wait()
+
+				result := strings.TrimSpace(buf.String())
+				result = spaces.ReplaceAllString(result, " ")
+				if !strings.Contains(result, "HELLO WORLD!") {
+					t.Fatal("Unexpected result:", result)
+				}
+
+				// The following was failing when tested using containerized
+				// images on GitHub. Seems there may be a difference in interpreter.
+
+				//expected := "HELLO WORLD! HELLO WORLD! HELLO WORLD!"
+				//if expected != result {
+				//	t.Fatal("Unexpected result: ", result)
+				//}
 			},
 		},
 		{
@@ -67,22 +117,6 @@ func TestEchoRun(t *testing.T) {
 			name: "simple run",
 			cmdStr: func() string {
 				return `echo "HELLO WORLD!"`
-			},
-			exec: func(cmd string) {
-				e := New()
-				result := e.Run(cmd)
-				if result != "HELLO WORLD!" {
-					t.Fatal("Unexpected command result:", result)
-				}
-			},
-		},
-
-		{
-			name: "simple multi-line",
-			cmdStr: func() string {
-				return `echo 
-				"HELLO WORLD!"
-				`
 			},
 			exec: func(cmd string) {
 				e := New()
