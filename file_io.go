@@ -27,7 +27,7 @@ func (f *File) Read() string {
 	defer file.Close()
 
 	buf := new(bytes.Buffer)
-	if _, err := io.Copy(buf, file); err != nil {
+	if _, err := buf.ReadFrom(file); err != nil {
 		f.err = err
 		return ""
 	}
@@ -67,7 +67,8 @@ func (f *File) ReadBytes() []byte {
 	defer file.Close()
 
 	buf := new(bytes.Buffer)
-	if _, err := io.Copy(buf, file); err != nil {
+
+	if _, err := buf.ReadFrom(file); err != nil {
 		f.err = err
 		return nil
 	}
@@ -86,25 +87,108 @@ func (f *File) Reader() io.ReadCloser {
 	return file
 }
 
-// Write opens an os.File and writes data into it
+// Write creates/truncates an os.File (mode 0666) and writes data into it
 func (f *File) Write(data string) {
+	file, err := os.Create(f.filename)
+	if err != nil {
+		f.err = err
+		return
+	}
+	defer file.Close()
 
+	if _, err := file.Write([]byte(data)); err != nil {
+		f.err = err
+		return
+	}
+}
+
+// Append appends to an existing os.File (mode 0644) and writes data into it
+func (f *File) Append(data string) {
+	file, err := os.OpenFile(f.filename, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		f.err = err
+		return
+	}
+	defer file.Close()
+	if _, err := file.Write([]byte(data)); err != nil {
+		f.err = err
+		return
+	}
 }
 
 // WriteLines opens an os.File and writes data into it
-func (f *File) WriteLines(data []string){
+func (f *File) WriteLines(lines []string) {
+	file, err := os.Create(f.filename)
+	if err != nil {
+		f.err = err
+		return
+	}
+	defer file.Close()
 
+	for _, line := range lines {
+		if _, err := file.Write([]byte(line)); err != nil {
+			f.err = err
+			return
+		}
+	}
+}
+
+// AppendLines appends lines to an existing os.File (mode 0644)
+func (f *File) AppendLines(lines []string) {
+	file, err := os.OpenFile(f.filename, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		f.err = err
+		return
+	}
+	defer file.Close()
+
+	for _, line := range lines {
+		if _, err := file.Write([]byte(line)); err != nil {
+			f.err = err
+			return
+		}
+	}
 }
 
 // WriteBytes opens an os.File and writes data into it
-func (f *File) WriteBytes(data []byte){
+func (f *File) WriteBytes(data []byte) {
+	file, err := os.Create(f.filename)
+	if err != nil {
+		f.err = err
+		return
+	}
+	defer file.Close()
 
+	if _, err := file.Write(data); err != nil {
+		f.err = err
+		return
+	}
 }
 
-// Writer opens an os.File and returns as io.WriteCloser
+// AppendBytes appends bytes to an existing os.File (mode 0644)
+func (f *File) AppendBytes(data []byte) {
+	file, err := os.OpenFile(f.filename, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		f.err = err
+		return
+	}
+	defer file.Close()
+
+	if _, err := file.Write(data); err != nil {
+		f.err = err
+		return
+	}
+}
+
+// Writer opens an os.File and returns it as io.WriteCloser
 // Ensure to call io.WriterCloser.Close() after use
-func (f *File) Writer () io.WriteCloser {
-	return nil
+func (f *File) Writer() io.WriteCloser {
+	file, err := os.Open(f.filename)
+	if err != nil {
+		f.err = err
+		return nil
+	}
+	return file
 }
 
 // Err returns any execution error
