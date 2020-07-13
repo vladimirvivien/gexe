@@ -191,6 +191,36 @@ func (f *File) Writer() io.WriteCloser {
 	return file
 }
 
+// StreamFrom creates a new file for f and streams bytes from r into it
+func (f *File) StreamFrom(r io.Reader) {
+	file, err := os.Create(f.filename)
+	if err != nil {
+		f.err = err
+		return
+	}
+	defer file.Close()
+
+	if _, err := io.Copy(file, r); err != nil {
+		f.err = err
+		return
+	}
+}
+
+// StreamTo streams content of file f into w
+func (f *File) StreamTo(w io.Writer) {
+	file, err := os.Open(f.filename)
+	if err != nil {
+		f.err = err
+		return
+	}
+	defer file.Close()
+
+	if _, err := io.Copy(w, file); err != nil {
+		f.err = err
+		return
+	}
+}
+
 // Err returns any execution error
 func (f *File) Err() error {
 	return f.err

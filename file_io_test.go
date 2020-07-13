@@ -223,3 +223,62 @@ func TestFile_Write(t *testing.T) {
 		})
 	}
 }
+
+func TestFile_Stream(t *testing.T) {
+	tests := []struct {
+		name     string
+		setup    func(t *testing.T) string
+		test     func(*testing.T, string)
+		teardown func(*testing.T, string)
+	}{
+		{
+			name: "stream from",
+			setup: func(t *testing.T) string {
+				return "/tmp/echo_test_copyfile.txt"
+			},
+			test: func(t *testing.T, filename string) {
+				New().OpenFile(filename).StreamFrom(strings.NewReader("Hello World!"))
+				expected := "Hello World!"
+				actual := New().OpenFile(filename).Read()
+				if actual != expected {
+					t.Errorf("unexpected result for File.StreamFrom: %s", actual)
+				}
+			},
+			teardown: func(t *testing.T, fileName string) {
+				if err := os.RemoveAll(fileName); err != nil {
+					t.Error(err)
+				}
+			},
+		},
+
+		{
+			name: "stream to",
+			setup: func(t *testing.T) string {
+				return "/tmp/echo_test_copyfile.txt"
+			},
+			test: func(t *testing.T, filename string) {
+				New().OpenFile(filename).Write("Hello from Echo!")
+				buf := new(bytes.Buffer)
+				New().OpenFile(filename).StreamTo(buf)
+				expected := "Hello from Echo!"
+				actual := strings.TrimSpace(buf.String())
+				if actual != expected {
+					t.Errorf("unexpected result for File.StreamTo: %s", actual)
+				}
+			},
+			teardown: func(t *testing.T, fileName string) {
+				if err := os.RemoveAll(fileName); err != nil {
+					t.Error(err)
+				}
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			filename := test.setup(t)
+			test.test(t, filename)
+			test.teardown(t, filename)
+		})
+	}
+}
