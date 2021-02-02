@@ -3,13 +3,15 @@ package echo
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/vladimirvivien/echo/exec"
 )
 
 // Echo represents a new Echo session
 type Echo struct {
 	vars  map[string]string // session var
 	Conf  *Config           // session config
-	Procs []Proc            // executed processes
+	Procs []exec.Proc       // executed processes
 	Prog  *prog             // progam info
 }
 

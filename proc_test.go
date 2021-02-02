@@ -1,21 +1,25 @@
 package echo
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/vladimirvivien/echo/exec"
+)
 
 func TestEchoProc(t *testing.T) {
 	tests := []struct {
 		name    string
-		cmdProc func() (*Echo, *Proc)
-		exec    func(*Echo, *Proc)
+		cmdProc func() (*Echo, *exec.Proc)
+		exec    func(*Echo, *exec.Proc)
 	}{
 		{
 			name: "start proc, no wait",
-			cmdProc: func() (*Echo, *Proc) {
+			cmdProc: func() (*Echo, *exec.Proc) {
 				e := New()
 				p := e.StartProc(`echo "HELLO WORLD!"`)
 				return e, p
 			},
-			exec: func(e *Echo, p *Proc) {
+			exec: func(e *Echo, p *exec.Proc) {
 				if p.Err() != nil {
 					t.Fatal("Unexpected error:", p.Err().Error())
 				}
@@ -35,13 +39,13 @@ func TestEchoProc(t *testing.T) {
 		},
 		{
 			name: "start proc, with wait",
-			cmdProc: func() (*Echo, *Proc) {
+			cmdProc: func() (*Echo, *exec.Proc) {
 				e := New()
 				p := e.StartProc(`echo "HELLO WORLD!"`)
 				p.Wait()
 				return e, p
 			},
-			exec: func(e *Echo, p *Proc) {
+			exec: func(e *Echo, p *exec.Proc) {
 				if p.Err() != nil {
 					t.Fatal("Unexpected error:", p.Err().Error())
 				}
@@ -61,12 +65,12 @@ func TestEchoProc(t *testing.T) {
 		},
 		{
 			name: "run proc",
-			cmdProc: func() (*Echo, *Proc) {
+			cmdProc: func() (*Echo, *exec.Proc) {
 				e := New()
 				p := e.RunProc(`echo "HELLO WORLD!"`)
 				return e, p
 			},
-			exec: func(e *Echo, p *Proc) {
+			exec: func(e *Echo, p *exec.Proc) {
 				if p.Err() != nil {
 					t.Fatal("Unexpected error:", p.Err().Error())
 				}
