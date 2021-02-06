@@ -22,11 +22,7 @@ func TestEchoRun(t *testing.T) {
 				return `echo "HELLO WORLD!"`
 			},
 			exec: func(cmd string) {
-				e := New()
-				p := e.StartProc(cmd)
-				if p.state != nil {
-					t.Fatal("state should not be set yet")
-				}
+				p := DefaultEcho.StartProc(cmd)
 				if p.Err() != nil {
 					t.Fatal("Unexpected error:", p.Err().Error())
 				}
@@ -44,9 +40,6 @@ func TestEchoRun(t *testing.T) {
 
 				// wait for completion
 				p.Wait()
-				if p.state == nil {
-					t.Fatal("state should be set after Wait()", p.cmd.ProcessState)
-				}
 				if p.ExitCode() != 0 {
 					t.Fatal("Expecting exit code 0, got:", p.ExitCode())
 				}
@@ -61,8 +54,7 @@ func TestEchoRun(t *testing.T) {
 				return `/bin/sh -c "for i in {1..3}; do echo 'HELLO WORLD!\$i'; sleep 0.2; done"`
 			},
 			exec: func(cmd string) {
-				e := New()
-				p := e.StartProc(cmd)
+				p := DefaultEcho.StartProc(cmd)
 				if p.Err() != nil {
 					t.Fatal(p.Err())
 				}
@@ -97,11 +89,7 @@ func TestEchoRun(t *testing.T) {
 				return `echo "HELLO WORLD!"`
 			},
 			exec: func(cmd string) {
-				e := New()
-				p := e.RunProc(cmd)
-				if p.state == nil {
-					t.Fatal("state should be set after Wait()", p.cmd.ProcessState)
-				}
+				p := DefaultEcho.RunProc(cmd)
 				if p.ExitCode() != 0 {
 					t.Fatal("Expecting exit code 0, got:", p.ExitCode())
 				}
@@ -119,8 +107,7 @@ func TestEchoRun(t *testing.T) {
 				return `echo "HELLO WORLD!"`
 			},
 			exec: func(cmd string) {
-				e := New()
-				result := e.Run(cmd)
+				result := DefaultEcho.Run(cmd)
 				if result != "HELLO WORLD!" {
 					t.Fatal("Unexpected command result:", result)
 				}
@@ -133,9 +120,9 @@ func TestEchoRun(t *testing.T) {
 				return "echo $MSG"
 			},
 			exec: func(cmd string) {
-				e := New().Var("MSG=Hello World")
-				result := e.Run(cmd)
-				if result != e.Val("MSG") {
+				DefaultEcho.Variables().Vars("MSG=Hello World")
+				result := DefaultEcho.Run(cmd)
+				if result != DefaultEcho.Variables().Val("MSG") {
 					t.Fatal("Unexpected command result:", result)
 				}
 			},

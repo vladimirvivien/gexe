@@ -8,7 +8,7 @@ import (
 // Abs returns the absolute representation for path.
 // Returns empty string if it fails for any reason.
 func (e *Echo) Abs(path string) string {
-	abs, err := filepath.Abs(os.Expand(path, e.Val))
+	abs, err := filepath.Abs(e.Variables().Eval(path))
 	if err != nil {
 		e.shouldPanic(err.Error())
 		return ""
@@ -19,7 +19,7 @@ func (e *Echo) Abs(path string) string {
 // Rel returns path that is relative to base/target.
 // Returns an empty path if error.
 func (e *Echo) Rel(base string, target string) string {
-	abs, err := filepath.Rel(os.Expand(base, e.Val), os.Expand(target, e.Val))
+	abs, err := filepath.Rel(e.Variables().Eval(base), e.Variables().Eval(target))
 	if err != nil {
 		e.shouldPanic(err.Error())
 		return ""
@@ -29,23 +29,23 @@ func (e *Echo) Rel(base string, target string) string {
 
 // Base returns the last portion (or name) of a path.
 func (e *Echo) Base(path string) string {
-	return filepath.Base(os.Expand(path, e.Val))
+	return filepath.Base(e.Variables().Eval(path))
 }
 
 // Dir returns parent path portion of a path (without the Base).
 func (e *Echo) Dir(path string) string {
-	return filepath.Dir(os.Expand(path, e.Val))
+	return filepath.Dir(e.Variables().Eval(path))
 }
 
 // PathSplit splits an OS-specific list of path into []string
 func (e *Echo) PathSplit(path string) []string {
-	return filepath.SplitList(os.Expand(path, e.Val))
+	return filepath.SplitList(e.Variables().Eval(path))
 }
 
 // PathSym returns the evaluated symbolic link for path.
 // Returns empty if symbolic evaluation fails.
 func (e *Echo) PathSym(path string) string {
-	link, err := filepath.EvalSymlinks(os.Expand(path, e.Val))
+	link, err := filepath.EvalSymlinks(e.Variables().Eval(path))
 	if err != nil {
 		e.shouldPanic(err.Error())
 		return ""
@@ -55,20 +55,20 @@ func (e *Echo) PathSym(path string) string {
 
 // Ext returns extension part of path
 func (e *Echo) Ext(path string) string {
-	return filepath.Ext(os.Expand(path, e.Val))
+	return filepath.Ext(e.Variables().Eval(path))
 }
 
 // PathJoin collate individual paths together for a longer path
 func (e *Echo) PathJoin(paths ...string) string {
 	for i, path := range paths {
-		paths[i] = os.Expand(path, e.Val)
+		paths[i] = e.Variables().Eval(path)
 	}
 	return filepath.Join(paths...)
 }
 
 // PathMatched returns true if path matches shell file pattern
 func (e *Echo) PathMatched(pattern, path string) bool {
-	matched, err := filepath.Match(pattern, os.Expand(path, e.Val))
+	matched, err := filepath.Match(pattern, e.Variables().Eval(path))
 	if err != nil {
 		return false
 	}
@@ -77,13 +77,13 @@ func (e *Echo) PathMatched(pattern, path string) bool {
 
 // IsAbs returns true if path is an absolute path
 func (e *Echo) IsAbs(path string) bool {
-	return filepath.IsAbs(os.Expand(path, e.Val))
+	return filepath.IsAbs(e.Variables().Eval(path))
 }
 
 // IsExist returns true if file is 1) accessible 2) exists.
 // All other conditions returns false.
 func (e *Echo) IsExist(path string) bool {
-	if _, err := os.Stat(os.Expand(path, e.Val)); err != nil {
+	if _, err := os.Stat(e.Variables().Eval(path)); err != nil {
 		if !os.IsNotExist(err) {
 			e.shouldPanic(err.Error())
 		}
@@ -95,7 +95,7 @@ func (e *Echo) IsExist(path string) bool {
 // IsReg returns true if path is a regular file.
 // All other cases (errors) will return false.
 func (e *Echo) IsReg(path string) bool {
-	info, err := os.Stat(os.Expand(path, e.Val))
+	info, err := os.Stat(e.Variables().Eval(path))
 	if err != nil {
 		return false
 	}
@@ -106,7 +106,7 @@ func (e *Echo) IsReg(path string) bool {
 // IsDir returns true if path is a directory.
 // All other cases (errors) will return false.
 func (e *Echo) IsDir(path string) bool {
-	info, err := os.Stat(os.Expand(path, e.Val))
+	info, err := os.Stat(e.Variables().Eval(path))
 	if err != nil {
 		return false
 	}
@@ -126,7 +126,7 @@ func (e *Echo) Mkdirs(paths string, modes ...uint32) {
 			mode = 0777
 		}
 
-		if err := os.MkdirAll(e.Eval(path), os.FileMode(mode)); err != nil {
+		if err := os.MkdirAll(e.Variables().Eval(path), os.FileMode(mode)); err != nil {
 			e.shouldPanic(err.Error())
 			e.shouldLog(err.Error())
 		}

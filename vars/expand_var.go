@@ -8,6 +8,10 @@ import (
 	"unicode"
 )
 
+var(
+	defaultEscapeChar rune = '\\'
+)
+
 // runeStack is a simple stack implementation (with slice backing)
 type runeStack struct {
 	store []rune
@@ -58,6 +62,9 @@ func (r *runeStack) depth() int {
 // leaving the original values in the string as $value or ${value}.
 func (v *Variables) ExpandVar(str string, expandFunc func(string) string) string {
 	escapeChar := v.escapeChar
+	if escapeChar == 0 {
+		escapeChar = defaultEscapeChar
+	}
 	stack := newRuneStack()
 	rdr := bufio.NewReader(strings.NewReader(str))
 	var result strings.Builder

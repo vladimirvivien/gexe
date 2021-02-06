@@ -1,7 +1,6 @@
 package echo
 
 import (
-	"os"
 	"testing"
 )
 
@@ -29,10 +28,10 @@ func TestEchoVar(t *testing.T) {
 			},
 		},
 		{
-			name: "Var with single line",
+			name: "Vars with single line",
 			echo: func() *Echo {
 				e := New()
-				e.Var("foo=bar fuzz=buzz")
+				e.Vars("foo=bar fuzz=buzz")
 				return e
 			},
 			test: func(e *Echo) {
@@ -45,10 +44,10 @@ func TestEchoVar(t *testing.T) {
 			},
 		},
 		{
-			name: "Var with multilines line",
+			name: "Vars with multilines line",
 			echo: func() *Echo {
 				e := New()
-				e.Var("bazz=azz foo=bar\nfuzz=buzz")
+				e.Vars("bazz=azz foo=bar\nfuzz=buzz")
 				return e
 			},
 			test: func(e *Echo) {
@@ -64,11 +63,11 @@ func TestEchoVar(t *testing.T) {
 			},
 		},
 		{
-			name: "Var with expansion",
+			name: "Vars with expansion",
 			echo: func() *Echo {
 				e := New()
 				e.SetVar("bazz", "dazz")
-				e.Var("foo=${bazz} fuzz=buzz")
+				e.Vars("foo=${bazz} fuzz=buzz")
 				return e
 			},
 			test: func(e *Echo) {
@@ -81,19 +80,16 @@ func TestEchoVar(t *testing.T) {
 			},
 		},
 		{
-			name: "Var overwrite Env",
+			name: "Vars overwrite Env",
 			echo: func() *Echo {
-				os.Setenv("foo", "fuzz")
 				e := New()
 				e.SetVar("foo", "bar")
+				e.SetEnv("foo", "fuzz")
 				return e
 			},
 			test: func(e *Echo) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
-				}
-				if os.Getenv("foo") != "" {
-					t.Fatal("Var overwrite failed:", os.Getenv("foo"))
 				}
 			},
 		},
@@ -133,7 +129,7 @@ func TestEchoEnv(t *testing.T) {
 			name: "Env with single line",
 			echo: func() *Echo {
 				e := New()
-				e.Env("foo=bar fuzz=buzz")
+				e.Envs("foo=bar fuzz=buzz")
 				return e
 			},
 			test: func(e *Echo) {
@@ -149,7 +145,7 @@ func TestEchoEnv(t *testing.T) {
 			name: "Env with multilines line",
 			echo: func() *Echo {
 				e := New()
-				e.Env("bazz=azz foo=bar\nfuzz=buzz")
+				e.Envs("bazz=azz foo=bar\nfuzz=buzz")
 				return e
 			},
 			test: func(e *Echo) {
@@ -169,7 +165,7 @@ func TestEchoEnv(t *testing.T) {
 			echo: func() *Echo {
 				e := New()
 				e.SetVar("bazz", "dazz")
-				e.Env("foo=${bazz} fuzz=buzz")
+				e.Envs("foo=${bazz} fuzz=buzz")
 				return e
 			},
 			test: func(e *Echo) {
@@ -182,19 +178,16 @@ func TestEchoEnv(t *testing.T) {
 			},
 		},
 		{
-			name: "Env overwrite Var",
+			name: "Env overwrite Vars",
 			echo: func() *Echo {
 				e := New()
-				e.vars["foo"] = "fuzz"
+				e.SetVar("foo", "fuzz")
 				e.SetEnv("foo", "bar")
 				return e
 			},
 			test: func(e *Echo) {
-				if e.Val("foo") != "bar" {
+				if e.Val("foo") != "fuzz" {
 					t.Fatal("unexpected value:", e.Val("foo"))
-				}
-				if _, ok := e.vars["foo"]; ok {
-					t.Fatal("Env overwrite failed:", e.vars["foo"])
 				}
 			},
 		},

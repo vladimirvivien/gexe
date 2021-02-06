@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/vladimirvivien/echo/exec"
+	"github.com/vladimirvivien/echo/vars"
 )
 
 // Echo represents a new Echo session
 type Echo struct {
-	vars  map[string]string // session var
-	Conf  *Config           // session config
-	Procs []exec.Proc       // executed processes
-	Prog  *prog             // progam info
+	vars  *vars.Variables // session vars
+	Conf  *Config         // session config
+	Prog  *prog           // Program info
 }
 
 var (
+	DefaultEcho = New()
 	spaceRgx = regexp.MustCompile("\\s")
 	lineRgx  = regexp.MustCompile("\\n")
 )
@@ -23,7 +23,7 @@ var (
 // New creates a new Echo session
 func New() *Echo {
 	e := &Echo{
-		vars: make(map[string]string),
+		vars: vars.New(),
 		Conf: &Config{escapeChar: '\\'},
 		Prog: new(prog),
 	}

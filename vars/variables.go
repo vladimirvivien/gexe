@@ -5,14 +5,17 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 var (
 	varsKeyValRgx = regexp.MustCompile("\\s*=\\s*")
-	varsLineRegx  = regexp.MustCompile("\\w+\\s*=\\s*\\w+")
+	// varsLineRegx matches vars/envs of form "a =b c= $d    e=f g=${h}"
+	varsLineRegx  = regexp.MustCompile("\\w+\\s*=\\s*(\\$?\\{?)\\w+(\\}?)")
 )
 
 type Variables struct {
+	sync.RWMutex
 	err error
 	vars map[string]string
 	escapeChar rune
@@ -27,11 +30,16 @@ func (v *Variables) WithEscapeChar(r rune) *Variables {
 	return v
 }
 
+// Err() surfaces error
+func (v *Variables) Err() error {
+	return v.err
+}
+
 // Envs declares process environment variables using
 // a multi-line space-separated list of KEY=VAL format:
 // i.e. GOOS=linux GOARCH=amd64
 func (v *Variables) Envs(val string) *Variables {
-	vars, err := parseVars(val)
+	vars, err := v.parseVars(val)
 	if err != nil {
 		v.err = err
 		return v
@@ -54,18 +62,22 @@ func (v *Variables) SetEnv(name, value string) *Variables {
 	return v
 }
 
-// Var declares an internal variable used during current echo session.
+// Vars declares an internal variable used during current echo session.
 // It uses a multi-line, space-separated list of KEY=VAL format:
 // i.e. foo=bar fuzz=buzz
-func (v *Variables) Var(val string) *Variables {
-	vars, err := parseVars(val)
+func (v *Variables) Vars(val string) *Variables {
+	vars, err := v.parseVars(val)
+
 	if err != nil {
 		v.err = err
 		return v
 	}
 
+	// copy them
+	v.Lock()
+	defer v.Unlock()
 	for key, val := range vars {
-		v.vars[key] = v.ExpandVar(val, v.Val)
+		v.vars[key] = val
 	}
 
 	return v
@@ -73,13 +85,17 @@ func (v *Variables) Var(val string) *Variables {
 
 // SetVar declares an in-process local variable.
 func (v *Variables) SetVar(name, value string) *Variables {
+	v.Lock()
+	defer v.Unlock()
 	v.vars[name] = v.ExpandVar(value, v.Val)
 	return v
 }
 
-// Val retrieves an in-process variable if found
-// or process environment variable
+// Val searches for a Var with provided key, if not found
+// searches for environment var, for running process, with same key
 func (v *Variables) Val(name string) string {
+	//v.Lock()
+	//defer v.Unlock()
 	if val, ok := v.vars[name]; ok {
 		return val
 	}
@@ -95,7 +111,7 @@ func (v *Variables) Eval(str string) string {
 
 // parseVars parses multi-line, space-separated key=value pairs
 // into map[string]string
-func parseVars(lines string) (map[string]string, error) {
+func (v *Variables) parseVars(lines string) (map[string]string, error) {
 	// parse lines into envs = []{"KEY0=VAL0", "KEY1=VAL1",...}
 	var envs []string
 	scnr := bufio.NewScanner(strings.NewReader(lines))
@@ -112,7 +128,7 @@ func parseVars(lines string) (map[string]string, error) {
 	for _, env := range envs {
 		kv := varsKeyValRgx.Split(env, 2)
 		if len(kv) == 2 {
-			result[kv[0]] = kv[1]
+			result[kv[0]] = v.Eval(kv[1])
 		}
 	}
 
