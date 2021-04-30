@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/vladimirvivien/echo/prog"
 	"github.com/vladimirvivien/echo/vars"
 )
 
@@ -11,7 +12,7 @@ import (
 type Echo struct {
 	vars  *vars.Variables // session vars
 	Conf  *Config         // session config
-	Prog  *prog           // Program info
+	Prog  *prog.prog      // Program info
 }
 
 var (
@@ -25,7 +26,7 @@ func New() *Echo {
 	e := &Echo{
 		vars: vars.New(),
 		Conf: &Config{escapeChar: '\\'},
-		Prog: new(prog),
+		Prog: new(prog.prog),
 	}
 	return e
 }
