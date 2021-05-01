@@ -2,14 +2,64 @@ package echo
 
 import (
 	"github.com/vladimirvivien/echo/exec"
+	"github.com/vladimirvivien/echo/fs"
+	"github.com/vladimirvivien/echo/prog"
+	"github.com/vladimirvivien/echo/vars"
 )
 
-// Package level functions that wraps Echo methods
-// with support for variable expansions.
+func Variables() *vars.Variables {
+	return DefaultEcho.Variables()
+}
 
+// Envs declares environment variables using
+// a multi-line space-separated list:
+//
+//     Envs("GOOS=linux GOARCH=amd64")
+//
+// Environment vars can be used in string values
+// using Eval("building for os=$GOOS")
+func Envs(val string) *Echo {
+	return DefaultEcho.Envs(val)
+}
+
+// SetEnv sets a process environment variable.
+func SetEnv(name, value string) *Echo {
+	return DefaultEcho.SetEnv(name, value)
+}
+
+// Vars declares session-scope variables using
+// a multi-line space-separated list:
+//
+//     Envs("foo=bar platform=amd64")
+//
+// Session vars can be used in string values
+// using Eval("My foo=$foo").
+//
+// Note that session vars are only available
+// for the running process.
+func Vars(val string) *Echo {
+	return DefaultEcho.Vars(val)
+}
+
+// SetVar declares a session variable.
+func SetVar(name, value string) *Echo {
+	return DefaultEcho.SetVar(name, value)
+}
+
+// Val retrieves a session or environment variable
+func Val(name string) string {
+	return DefaultEcho.Val(name)
+}
+
+// Eval returns the string str with its content expanded
+// with variable values i.e. Eval("I am $HOME") returns
+// "I am </user/home/path>"
+func Eval(str string) string {
+	return DefaultEcho.Eval(str)
+}
 
 // StartProc executes the command in cmdStr and returns immediately
-// without waiting. Information about the running process is stored in *Proc.
+// without waiting. Information about the running process is stored in *exec.Proc.
 func StartProc(cmdStr string) *exec.Proc {
 	return DefaultEcho.StartProc(cmdStr)
 }
@@ -30,90 +80,19 @@ func Runout(cmdStr string) {
 	DefaultEcho.Runout(cmdStr)
 }
 
-// Abs returns the absolute representation for path.
-// Returns empty string if it fails for any reason.
-func Abs(path string) string {
-	return DefaultEcho.Abs(path)
+// Read creates an fs.FileReader that
+// can be used to read content from files.
+func Read(path string) fs.FileReader {
+	return DefaultEcho.Read(path)
 }
 
-// Rel returns path that is relative to base/target.
-// Returns an empty path if error.
-func Rel(base string, target string) string {
-	return DefaultEcho.Rel(base, target)
+// Write creates an fs.FileWriter that
+// can be used to write content to files
+func Write(path string) fs.FileWriter {
+	return DefaultEcho.Write(path)
 }
 
-// Base returns the last portion (or name) of a path.
-func Base(path string) string {
-	return DefaultEcho.Base(path)
-}
-
-// Dir returns parent path portion of a path (without the Base).
-func Dir(path string) string {
-	return DefaultEcho.Dir(path)
-}
-
-// PathSplit splits an OS-specific list of path into []string
-func PathSplit(path string) []string {
-	return DefaultEcho.PathSplit(path)
-}
-
-// PathSym returns the evaluated symbolic link for path.
-// Returns empty if symbolic evaluation fails.
-func PathSym(path string) string {
-	return DefaultEcho.PathSym(path)
-}
-
-// Ext returns extension part of path
-func Ext(path string) string {
-	return DefaultEcho.Ext(path)
-}
-
-// PathJoin collate individual paths together for a longer path
-func PathJoin(paths ...string) string {
-	return DefaultEcho.PathJoin(paths...)
-}
-
-// PathMatched returns true if path matches shell file pattern
-func PathMatched(pattern, path string) bool {
-	return DefaultEcho.PathMatched(pattern, path)
-}
-
-// IsAbs returns true if path is an absolute path
-func IsAbs(path string) bool {
-	return DefaultEcho.IsAbs(path)
-}
-
-// IsExist returns true if file is 1) accessible 2) exists.
-// All other conditions returns false.
-func IsExist(path string) bool {
-	return DefaultEcho.IsExist(path)
-}
-
-// IsReg returns true if path is a regular file.
-// All other cases (errors) will return false.
-func IsReg(path string) bool {
-	return DefaultEcho.IsReg(path)
-}
-
-// IsDir returns true if path is a directory.
-// All other cases (errors) will return false.
-func IsDir(path string) bool {
-	return DefaultEcho.IsDir(path)
-}
-
-// Mkdirs creates one or more space-separated directories using the optional filemods.
-// If no mode is provided, it defaults to 0777. When mode is provided only
-// modes[0] is applied.
-func Mkdirs(paths string, modes ...uint32) {
-	DefaultEcho.Mkdirs(paths,modes...)
-}
-
-// Rmdirs removes one or more space-separated directories
-func Rmdirs(paths string) {
-	DefaultEcho.Rmdirs(paths)
-}
-
-// AreSame tests files at path0 and path to check if they are the same
-func AreSame(path0, path1 string) bool {
-	return DefaultEcho.AreSame(path0, path1)
+// Prog returns program information via *prog.ProgInfo
+func Prog() *prog.ProgInfo {
+	return DefaultEcho.Prog()
 }

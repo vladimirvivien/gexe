@@ -24,15 +24,15 @@
 * [x] Doc update
 
 ## v0.0.1-alpha.5
-* [ ] Namespace all methods
-* [ ] Add package level shortcut funcs for popular methods
+* [x] Namespace all methods
+* [x] Add package level shortcut funcs for popular methods
 
 ## v0.0.1-alpha.6
-* [ ] Default shell: sets a default shell for method Run (`e.Conf.Shell()`).
-* [ ] Enhanced text parsing with parameter expansion escape
+* [ ] ~Default shell: sets a default shell for method Run (`e.Conf.Shell()`)~.
+* [x] Enhanced text parsing with parameter expansion escape
 
 
-## Upcoming
+## ~Upcoming~
 - Ability to pipe result from previous cmd i.e.:
   e.Pipe(e.Run(cmd), e.Run(cmd), e.Run(cmd))
 - Item iterator:

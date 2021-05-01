@@ -21,7 +21,7 @@ func init() {
 func main() {
 	e := echo.New()
 	e.Conf.SetPanicOnErr(false)
-	e.Var("MYUSERNAME=$USER")
+	e.Vars("MYUSERNAME=$USER")
 	if e.Eval("$MYUSERNAME") == "" {
 		fmt.Println("You were not found")
 		os.Exit(1)

@@ -17,8 +17,7 @@ func main() {
 	execTime := time.Second * 5
 	fmt.Println("ping golang.org...")
 
-	e := echo.New()
-	p := e.StartProc("ping golang.org")
+	p := echo.StartProc("ping golang.org")
 
 	if p.Err() != nil {
 		fmt.Println("ping failed:", p.Err())
@@ -33,6 +32,9 @@ func main() {
 	}()
 
 	<-time.After(execTime)
-	p.Kill()
+	if err := p.Kill().Err(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	fmt.Printf("Pingged golang.org for %s\n", execTime)
 }

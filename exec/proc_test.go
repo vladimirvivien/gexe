@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/vladimirvivien/echo"
+	"github.com/vladimirvivien/echo/vars"
 )
 
 func TestProc(t *testing.T) {
@@ -109,9 +109,9 @@ func TestProc(t *testing.T) {
 			name: "simple with expansion",
 			cmdStr: "echo $MSG",
 			exec: func(cmd string) {
-				e := echo.New().Var("MSG=Hello World")
-				result := Run(cmd)
-				if result != e.Val("MSG") {
+				v := vars.New().Vars("MSG=Hello World")
+				result := Run(v.Eval(cmd))
+				if result != v.Val("MSG") {
 					t.Fatal("Unexpected command result:", result)
 				}
 			},

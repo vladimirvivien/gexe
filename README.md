@@ -7,19 +7,24 @@ using the security and type safety of the Go programming language.
 ## What `echo` is
 * Not a tool for shell-scripting Go code
 * Designed to be used as idiomatic Go
-* Rich types for easy interactions with OS and IO 
-* Support for different programming styles
+* Rich types for easy interactions with OS (exec, IO, etc)
 * Programs can be used as pre-compiled binaries or with `go run`
    
 
 ## Using `echo`
-Create a session:
+The `echo` package comes with several functions ready to be used. For instance
+to execute an external command, you can use the following:"
+```
+echo.Run(`echo "Hello World!"`)
+```
+
+Alternatively, you can create your own echo session with:
 ```
 e := echo.New()
 ```
-Then, optionally configure your session:
+Then run the echo methods available:
 ```
-e.Conf.SetPanicOnError(true)
+e.Run(...)
 ```
 
 ### Building Go with `echo`
@@ -27,17 +32,16 @@ This example shows how `echo` can be used to build Go project binaries for multi
 platforms and OSes.
 ```go
 func main() {
-	e := echo.New()
 	for _, arch := range []string{"amd64"} {
 		for _, opsys := range []string{"darwin", "linux"} {
-			e.SetVar("arch", arch).SetVar("os", opsys)
-			e.SetVar("binpath", fmt.Sprintf("build/%s/%s/mybinary", arch, opsys))
-			result := e.Env("CGO_ENABLED=0 GOOS=$os GOARCH=$arch").Run("go build -o $binpath .")
+			echo.SetVar("arch", arch).SetVar("os", opsys)
+			echo.SetVar("binpath", fmt.Sprintf("build/%s/%s/mybinary", arch, opsys))
+			result := echo.Envs("CGO_ENABLED=0 GOOS=$os GOARCH=$arch").Run("go build -o $binpath .")
 			if result != "" {
 				fmt.Printf("Build for %s/%s failed: %s\n", arch, opsys, result)
 				os.Exit(1)
 			}
-			fmt.Printf("Build %s/%s: %s OK\n", arch, opsys, e.Eval("$binpath"))
+			fmt.Printf("Build %s/%s: %s OK\n", arch, opsys, echo.Eval("$binpath"))
 		}
 	}
 }
@@ -54,8 +58,7 @@ func main() {
 	execTime := time.Second * 5
 	fmt.Println("ping golang.org...")
 
-	e := echo.New()
-	p := e.StartProc("ping golang.org")
+	p := echo.StartProc("ping golang.org")
 
 	if p.Err() != nil {
 		fmt.Println("ping failed:", p.Err())
@@ -83,7 +86,7 @@ for more complex functionalities (such as piping).
 func main() {
 	e := echo.New()
 	cmd := `/bin/sh -c "git log --reverse --abbrev-commit --pretty=oneline | cut -d ' ' -f1"`
-	for _, p := range e.Split(e.Run(cmd), "\n") {
+	for _, p := range strings.Split(e.Run(cmd), "\n") {
 		e.SetVar("patch", p)
 		cmd := `/bin/sh -c "git show --abbrev-commit -s --pretty=format:'%h %s (%an) %n' ${patch}"`
 		fmt.Println(e.Run(cmd))
