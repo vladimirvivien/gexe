@@ -53,9 +53,9 @@ func TestProc(t *testing.T) {
 		},
 		{
 			name: "start proc/long-running",
-			cmdStr: `/bin/sh -c "for i in {1..3}; do echo 'HELLO WORLD!\$i'; sleep 0.2; done"`,
+			cmdStr: `/bin/bash -c 'for i in {1..3}; do echo "HELLO WORLD!"; sleep 0.7; done'`,
 			exec: func(cmd string) {
-				p := StartProc(vars.New().Eval(cmd))
+				p := StartProc(cmd)
 				if p.Err() != nil {
 					t.Fatal(p.Err())
 				}
