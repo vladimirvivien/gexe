@@ -1,4 +1,4 @@
-package echo
+package exec
 
 import (
 	"bufio"
@@ -7,22 +7,13 @@ import (
 	"unicode"
 )
 
-// splitWords splits a string into space-seprated items
-func (e *Echo) splitWords(val string) []string {
-	words, err := parse(val)
-	if err != nil {
-		e.shouldPanic(err.Error())
-		e.shouldLog(err.Error())
-	}
-	return words
-}
-
-// wordSplit splits space-separted strings into words including quoted words:
+// parse parses space-separated string into words including quoted words:
 //
-//     aaa "bbb" "ccc ddd" '"eee ff"'
+//  aaa "bbb" "ccc ddd" '"eee ff"'
 //
-//  String aaa"abcd": returns whole string.
-//  String "aaa"bbb:  returns two words "aaa" and "bbb"
+//  NB:
+//  - aaa"abcd": returns whole string.
+//  - "aaa"bbb:  returns two words "aaa" and "bbb"
 func parse(val string) ([]string, error) {
 	rdr := bufio.NewReader(strings.NewReader(val))
 	var startQuote rune
@@ -117,3 +108,4 @@ func isQuote(r rune) bool {
 func isChar(r rune) bool {
 	return !isQuote(r) && !unicode.IsSpace(r)
 }
+

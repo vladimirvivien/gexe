@@ -1,4 +1,4 @@
-package echo
+package vars
 
 import (
 	"bufio"
@@ -6,6 +6,10 @@ import (
 	"os"
 	"strings"
 	"unicode"
+)
+
+var(
+	defaultEscapeChar rune = '\\'
 )
 
 // runeStack is a simple stack implementation (with slice backing)
@@ -56,10 +60,10 @@ func (r *runeStack) depth() int {
 // sequence will be ignored. For instance if the escapeChar is '\',
 // when \$value or \${value} is encountered, the variable expansion is ignored
 // leaving the original values in the string as $value or ${value}.
-func (e *Echo) expandVar(str string, expandFunc func(string) string) string {
-	escapeChar := e.Conf.GetEscapeChar()
+func (v *Variables) ExpandVar(str string, expandFunc func(string) string) string {
+	escapeChar := v.escapeChar
 	if escapeChar == 0 {
-		escapeChar = '\\'
+		escapeChar = defaultEscapeChar
 	}
 	stack := newRuneStack()
 	rdr := bufio.NewReader(strings.NewReader(str))
@@ -81,7 +85,7 @@ func (e *Echo) expandVar(str string, expandFunc func(string) string) string {
 			if err == io.EOF {
 				popAll(&result, stack)
 				if inVar {
-					result.WriteString(resloveVar(&variable, expandFunc))
+					result.WriteString(resolveVar(&variable, expandFunc))
 				}
 			}
 			return result.String()
@@ -131,7 +135,7 @@ func (e *Echo) expandVar(str string, expandFunc func(string) string) string {
 				if inVar {
 					inVar = false
 					variable.WriteRune(token)
-					result.WriteString(resloveVar(&variable, expandFunc))
+					result.WriteString(resolveVar(&variable, expandFunc))
 					continue
 				}
 				result.WriteRune(token)
@@ -144,7 +148,7 @@ func (e *Echo) expandVar(str string, expandFunc func(string) string) string {
 			case isBoundary(token):
 				if inVar {
 					inVar = false
-					result.WriteString(resloveVar(&variable, expandFunc))
+					result.WriteString(resolveVar(&variable, expandFunc))
 					result.WriteRune(token)
 					continue
 				}
@@ -176,30 +180,18 @@ func (e *Echo) expandVar(str string, expandFunc func(string) string) string {
 }
 
 func isDollarSign(r rune) bool {
-	if r == '$' {
-		return true
-	}
-	return false
+	return r == '$'
 }
 
 func isEscapeChar(r rune, escapeChar rune) bool {
-	if r == escapeChar {
-		return true
-	}
-	return false
+	return r == escapeChar
 }
 
 func isOpenCurly(r rune) bool {
-	if r == '{' {
-		return true
-	}
-	return false
+	return r == '{'
 }
 func isCloseCurly(r rune) bool {
-	if r == '}' {
-		return true
-	}
-	return false
+	return r == '}'
 }
 func popAll(target *strings.Builder, stack *runeStack) {
 	for !stack.isEmpty() {
@@ -207,7 +199,7 @@ func popAll(target *strings.Builder, stack *runeStack) {
 	}
 }
 
-func resloveVar(variable *strings.Builder, expandFunc func(string) string) string {
+func resolveVar(variable *strings.Builder, expandFunc func(string) string) string {
 	val := variable.String()
 	variable.Reset()
 	return os.Expand(val, expandFunc)

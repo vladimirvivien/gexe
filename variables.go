@@ -1,90 +1,63 @@
-package echo
+package gexe
 
 import (
-	"bufio"
-	"os"
-	"strings"
+	"github.com/vladimirvivien/gexe/vars"
 )
+func (e *Echo) Variables() *vars.Variables {
+	return e.vars
+}
 
-// Env declares process environment variables using
-// a multi-line space-separated list of KEY=VAL format:
-// i.e. GOOS=linux GOARCH=amd64
-func (e *Echo) Env(val string) *Echo {
-	vars := e.declareVars(val)
-	for k, v := range vars {
-		if err := os.Setenv(k, v); err != nil {
-			e.shouldPanic(err.Error())
-		} else {
-			delete(e.vars, k) // overwrite local var
-		}
-	}
+// Envs declares environment variables using
+// a multi-line space-separated list:
+//
+//     Envs("GOOS=linux GOARCH=amd64")
+//
+// Environment vars can be used in string values
+// using Eval("building for os=$GOOS")
+func (e *Echo) Envs(val string) *Echo {
+	vars := e.vars.Envs(val)
+	e.err = vars.Err()
 	return e
 }
 
-// SetEnv declares a global process environment variable.
+// SetEnv sets a global process environment variable.
 func (e *Echo) SetEnv(name, value string) *Echo {
-	if err := os.Setenv(name, os.Expand(value, e.Val)); err != nil {
-		e.shouldPanic(err.Error())
-	} else {
-		delete(e.vars, name)
-	}
+	vars := e.vars.SetEnv(name,value)
+	e.err = vars.Err()
 	return e
 }
 
-// Var declares variables used during current echo session using
-// a multi-line space-separated list of KEY=VAL format:
-// i.e. foo=bar fuzz=buzz
-func (e *Echo) Var(val string) *Echo {
-	vars := e.declareVars(val)
-	for k, v := range vars {
-		os.Unsetenv(k)
-		e.vars[k] = v
-	}
+// Vars declares session-scope variables using
+// a multi-line space-separated list:
+//
+//     Envs("foo=bar platform=amd64")
+//
+// Session vars can be used in string values
+// using Eval("My foo=$foo").
+//
+// Note that session vars are only available
+// for the running process.
+func (e *Echo) Vars(val string) *Echo {
+	vars := e.vars.Vars(val)
+	e.err = vars.Err()
 	return e
 }
 
-// SetVar declares an echo session local variable.
+// SetVar declares a session variable.
 func (e *Echo) SetVar(name, value string) *Echo {
-	os.Unsetenv(name)
-	e.vars[name] = e.expandVar(value, e.Val)
+	vars := e.vars.SetVar(name, value)
+	e.err = vars.Err()
 	return e
 }
 
 // Val retrieves a session or environment variable
 func (e *Echo) Val(name string) string {
-	if val, ok := e.vars[name]; ok {
-		return val
-	}
-	return os.Getenv(name)
+	return e.vars.Val(name)
 }
 
 // Eval returns the string str with its content expanded
 // with variable values i.e. Eval("I am $HOME") returns
 // "I am </user/home/path>"
 func (e *Echo) Eval(str string) string {
-	return e.expandVar(str, e.Val)
-}
-
-func (e *Echo) declareVars(val string) map[string]string {
-	evaled := e.Eval(val)
-
-	// parse lines into envs = []{"KEY0=VAL0", "KEY1=VAL1",...}
-	var envs []string
-	scnr := bufio.NewScanner(strings.NewReader(evaled))
-	for scnr.Scan() {
-		envs = append(envs, spaceRgx.Split(scnr.Text(), -1)...)
-	}
-	if err := scnr.Err(); err != nil {
-		e.shouldPanic(err.Error())
-	}
-
-	result := make(map[string]string)
-	for _, env := range envs {
-		kv := strings.Split(env, "=")
-		if len(kv) == 2 {
-			result[kv[0]] = kv[1]
-		}
-	}
-
-	return result
+	return e.vars.Eval(str)
 }

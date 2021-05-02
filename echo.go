@@ -1,45 +1,32 @@
-package echo
+package gexe
 
 import (
-	"fmt"
 	"regexp"
+
+	"github.com/vladimirvivien/gexe/prog"
+	"github.com/vladimirvivien/gexe/vars"
+)
+
+var (
+	DefaultEcho = New()
+	spaceRgx    = regexp.MustCompile("\\s")
+	lineRgx     = regexp.MustCompile("\\n")
 )
 
 // Echo represents a new Echo session
 type Echo struct {
-	vars  map[string]string // session var
-	Conf  *Config           // session config
-	Procs []Proc            // executed processes
-	Prog  *prog             // progam info
+	err  error
+	vars *vars.Variables // session vars
+	prog *prog.ProgInfo
+	Conf *Config         // session config
 }
-
-var (
-	spaceRgx = regexp.MustCompile("\\s")
-	lineRgx  = regexp.MustCompile("\\n")
-)
 
 // New creates a new Echo session
 func New() *Echo {
 	e := &Echo{
-		vars: make(map[string]string),
+		vars: vars.New(),
+		prog: prog.Prog(),
 		Conf: &Config{escapeChar: '\\'},
-		Prog: new(prog),
 	}
 	return e
-}
-
-func (e *Echo) shouldPanic(msg string) {
-	if e.Conf.IsPanicOnErr() {
-		panic(msg)
-	}
-}
-
-func (e *Echo) shouldLog(msg string) {
-	if e.Conf.IsVerbose() {
-		fmt.Println(msg)
-	}
-}
-
-func (e *Echo) String() string {
-	return fmt.Sprintf("Vars[%#v]", e.vars)
 }

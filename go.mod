@@ -1,3 +1,3 @@
-module github.com/vladimirvivien/echo
+module github.com/vladimirvivien/gexe
 
-go 1.13
+go 1.16
