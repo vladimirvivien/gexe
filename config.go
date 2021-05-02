@@ -1,4 +1,4 @@
-package echo
+package gexe
 
 // Config stores configuration
 type Config struct {

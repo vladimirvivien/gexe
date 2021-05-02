@@ -1,10 +1,10 @@
-package echo
+package gexe
 
 import (
 	"regexp"
 
-	"github.com/vladimirvivien/echo/prog"
-	"github.com/vladimirvivien/echo/vars"
+	"github.com/vladimirvivien/gexe/prog"
+	"github.com/vladimirvivien/gexe/vars"
 )
 
 var (

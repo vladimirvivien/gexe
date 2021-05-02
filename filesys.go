@@ -1,7 +1,7 @@
-package echo
+package gexe
 
 import (
-	"github.com/vladimirvivien/echo/fs"
+	"github.com/vladimirvivien/gexe/fs"
 )
 
 func (e *Echo) Read(path string) fs.FileReader {

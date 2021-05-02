@@ -1,7 +1,7 @@
-package echo
+package gexe
 
 import (
-	"github.com/vladimirvivien/echo/prog"
+	"github.com/vladimirvivien/gexe/prog"
 )
 
 func (e *Echo) Prog() *prog.ProgInfo {

@@ -1,10 +1,10 @@
-package echo
+package gexe
 
 import (
-	"github.com/vladimirvivien/echo/exec"
-	"github.com/vladimirvivien/echo/fs"
-	"github.com/vladimirvivien/echo/prog"
-	"github.com/vladimirvivien/echo/vars"
+	"github.com/vladimirvivien/gexe/exec"
+	"github.com/vladimirvivien/gexe/fs"
+	"github.com/vladimirvivien/gexe/prog"
+	"github.com/vladimirvivien/gexe/vars"
 )
 
 func Variables() *vars.Variables {

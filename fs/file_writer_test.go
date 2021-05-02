@@ -38,7 +38,7 @@ func TestFileWriter (t *testing.T) {
 			name:"write.lines",
 			write: func(t *testing.T) testFile {
 				file := testFile{path:"/tmp/echo_test_write_lines.txt", content:""}
-				f := Write(file.path).Lines([]string{"Hello", "echo", "echo"})
+				f := Write(file.path).Lines([]string{"Hello", "gexe", "gexe"})
 				if f.Err() != nil {
 					t.Fatal(f.Err())
 				}
@@ -46,7 +46,7 @@ func TestFileWriter (t *testing.T) {
 			},
 			test: func(t *testing.T, file testFile){
 				actual := Read(file.path).Lines()
-				expected := []string{"Hello", "echo", "echo"}
+				expected := []string{"Hello", "gexe", "gexe"}
 				if len(actual) != len(expected) {
 					t.Fatalf("Write().Lines unexpected length: want %d, got %d", len(expected), len(actual))
 				}
@@ -154,12 +154,12 @@ func TestFileAppender (t *testing.T) {
 				if f.Err() != nil {
 					t.Fatal(f.Err())
 				}
-				Append(file.path).Lines([]string{"Hello", "echo", "echo"})
+				Append(file.path).Lines([]string{"Hello", "gexe", "gexe"})
 				return file
 			},
 			test: func(t *testing.T, file testFile){
 				actual := Read(file.path).Lines()
-				expected := []string{"Alo","Hello", "echo", "echo"}
+				expected := []string{"Alo","Hello", "gexe", "gexe"}
 				if len(actual) != len(expected) {
 					t.Fatalf("Write().Lines unexpected length: want %d, got %d", len(expected), len(actual))
 				}

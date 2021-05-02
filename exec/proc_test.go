@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/vladimirvivien/echo/vars"
+	"github.com/vladimirvivien/gexe/vars"
 )
 
 func TestProc(t *testing.T) {

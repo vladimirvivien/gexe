@@ -62,7 +62,7 @@ func (v *Variables) SetEnv(name, value string) *Variables {
 	return v
 }
 
-// Vars declares an internal variable used during current echo session.
+// Vars declares an internal variable used during current gexe session.
 // It uses a multi-line, space-separated list of KEY=VAL format:
 // i.e. foo=bar fuzz=buzz
 func (v *Variables) Vars(val string) *Variables {

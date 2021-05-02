@@ -20,7 +20,7 @@ func TestFileReader(t *testing.T) {
 	}{
 		{
 			name: "read.string",
-			file: testFile{path:"/tmp/echo_test_read_string.txt", content:"Hello from echo"},
+			file: testFile{path:"/tmp/echo_test_read_string.txt", content:"Hello from gexe"},
 			test: func(t *testing.T, file testFile) {
 				fr := Read(file.path)
 				if fr.Err() != nil {
@@ -34,14 +34,14 @@ func TestFileReader(t *testing.T) {
 		},
 		{
 			name: "read.lines",
-			file: testFile{path:"/tmp/echo_test_read_lines.txt", content:"Hello from\necho\necho\necho"},
+			file: testFile{path:"/tmp/echo_test_read_lines.txt", content:"Hello from\ngexe\ngexe\ngexe"},
 			test: func(t *testing.T, file testFile) {
 				fr := Read(file.path)
 				if fr.Err() != nil {
 					t.Fatal(fr.Err())
 				}
 				actual := fr.Lines()
-				expected := []string{"Hello from", "echo", "echo", "echo"}
+				expected := []string{"Hello from", "gexe", "gexe", "gexe"}
 				if len(actual) != len(expected) {
 					t.Errorf("Read().Lines(): unexpected length: want %d, got %d", len(expected), len(actual))
 				}
@@ -55,7 +55,7 @@ func TestFileReader(t *testing.T) {
 		},
 		{
 			name: "read.bytes",
-			file: testFile{path:"/tmp/echo_test_read_bytes.txt", content:"Hello from echo"},
+			file: testFile{path:"/tmp/echo_test_read_bytes.txt", content:"Hello from gexe"},
 			test: func(t *testing.T, file testFile) {
 				fr := Read(file.path)
 				if fr.Err() != nil {
@@ -69,7 +69,7 @@ func TestFileReader(t *testing.T) {
 		},
 		{
 			name: "read.writeTo",
-			file: testFile{path:"/tmp/echo_test_read_writeTo.txt", content:"Hello from echo"},
+			file: testFile{path:"/tmp/echo_test_read_writeTo.txt", content:"Hello from gexe"},
 			test: func(t *testing.T, file testFile) {
 				buf := new(bytes.Buffer)
 				fr := Read(file.path).WriteTo(buf)

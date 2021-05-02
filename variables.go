@@ -1,7 +1,7 @@
-package echo
+package gexe
 
 import (
-	"github.com/vladimirvivien/echo/vars"
+	"github.com/vladimirvivien/gexe/vars"
 )
 func (e *Echo) Variables() *vars.Variables {
 	return e.vars

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/vladimirvivien/echo"
+	"github.com/vladimirvivien/gexe"
 )
 
 var (
@@ -19,7 +19,7 @@ func init() {
 // local or environment variables used in expansion
 // at runtime.
 func main() {
-	e := echo.New()
+	e := gexe.New()
 	e.Conf.SetPanicOnErr(false)
 	e.Vars("MYUSERNAME=$USER")
 	if e.Eval("$MYUSERNAME") == "" {

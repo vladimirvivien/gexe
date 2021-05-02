@@ -1,9 +1,9 @@
-package echo
+package gexe
 
 import (
 	"fmt"
 
-	"github.com/vladimirvivien/echo/exec"
+	"github.com/vladimirvivien/gexe/exec"
 )
 
 // StartProc executes the command in cmdStr and returns immediately

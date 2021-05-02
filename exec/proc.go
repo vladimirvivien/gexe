@@ -41,7 +41,7 @@ func StartProc(cmdStr string) *Proc {
 	}
 
 	if err := command.Start(); err != nil {
-		return &Proc{id: command.Process.Pid, cmd: command, state: command.ProcessState, err: err}
+		return &Proc{cmd: command, err: err}
 	}
 
 	return &Proc{

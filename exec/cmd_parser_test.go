@@ -60,8 +60,8 @@ func TestEchoSplitWords(t *testing.T) {
 		},
 		{
 			name:  "actual exec command",
-			str:   `/bin/bash -c 'echo "Hello World"'`,
-			words: []string{`/bin/bash`, `-c`, `echo "Hello World"`},
+			str:   `/bin/bash -c 'gexe "Hello World"'`,
+			words: []string{`/bin/bash`, `-c`, `gexe "Hello World"`},
 		},
 	}
 

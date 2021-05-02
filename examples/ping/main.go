@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/vladimirvivien/echo"
+	"github.com/vladimirvivien/gexe"
 )
 
-// This example shows how echo can be used to launch and stream
+// This example shows how gexe can be used to launch and stream
 // the output of the process as it happens. The following code
 // starts a `ping` command, streams the output, displays the result,
 // then kill the process after 5 seconds.
@@ -17,7 +17,7 @@ func main() {
 	execTime := time.Second * 5
 	fmt.Println("ping golang.org...")
 
-	p := echo.StartProc("ping golang.org")
+	p := gexe.StartProc("ping golang.org")
 
 	if p.Err() != nil {
 		fmt.Println("ping failed:", p.Err())
