@@ -8,15 +8,16 @@ import (
 )
 
 type fileReader struct {
-	err error
-	path string
+	err   error
+	path  string
 	finfo os.FileInfo
 }
 
-// Read creates a file reader; it stat(path)
-// to ensure it already exists, if not FileReader.err is filled.
+// Read creates a FileReader using the provided path.
+// A non-nil FileReader.Err() is returned if file does not exist
+// or another error is generated.
 func Read(path string) FileReader {
-	fr := &fileReader{path:path}
+	fr := &fileReader{path: path}
 	info, err := os.Stat(fr.path)
 	if err != nil {
 		fr.err = err
@@ -26,15 +27,17 @@ func Read(path string) FileReader {
 	return fr
 }
 
+// Err returns an operation error during file read.
 func (fr *fileReader) Err() error {
 	return fr.err
 }
 
+// Info surfaces the os.FileInfo for the associated file
 func (fr *fileReader) Info() os.FileInfo {
 	return fr.finfo
 }
 
-
+// String returns the content of the file as a string value
 func (fr *fileReader) String() string {
 	file, err := os.Open(fr.path)
 	if err != nil {
@@ -52,6 +55,7 @@ func (fr *fileReader) String() string {
 	return buf.String()
 }
 
+// Lines returns the content of the file as slice of string
 func (fr *fileReader) Lines() []string {
 	file, err := os.Open(fr.path)
 	if err != nil {
@@ -73,6 +77,7 @@ func (fr *fileReader) Lines() []string {
 	return lines
 }
 
+// Bytes returns the content of the file as []byte
 func (fr *fileReader) Bytes() []byte {
 	file, err := os.Open(fr.path)
 	if err != nil {
@@ -91,7 +96,9 @@ func (fr *fileReader) Bytes() []byte {
 	return buf.Bytes()
 }
 
-func (fr *fileReader) WriteTo(w io.Writer) FileReader {
+// Into reads the content of the file and writes
+// it into the specified Writer
+func (fr *fileReader) Into(w io.Writer) FileReader {
 	file, err := os.Open(fr.path)
 	if err != nil {
 		fr.err = err

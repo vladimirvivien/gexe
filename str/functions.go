@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// IsEmpty tests for str == ""
 func IsEmpty(str string) bool {
 	return String(str).IsEmpty()
 }

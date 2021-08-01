@@ -62,7 +62,7 @@ func TestEchoRun(t *testing.T) {
 				buf := &bytes.Buffer{}
 				go func() {
 					if _, err := io.Copy(buf, p.StdOut()); err != nil {
-						t.Fatal(err)
+						t.Error(err)
 					}
 				}()
 

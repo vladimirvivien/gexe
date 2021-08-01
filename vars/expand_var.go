@@ -8,8 +8,8 @@ import (
 	"unicode"
 )
 
-var(
-	defaultEscapeChar rune = '\\'
+var (
+	defaultEscapeChar = '\\'
 )
 
 // runeStack is a simple stack implementation (with slice backing)
@@ -55,7 +55,7 @@ func (r *runeStack) depth() int {
 	return r.top + 1
 }
 
-// ExpandEnv searches str for $value or ${value} which is then evaluated
+// ExpandVar searches str for $value or ${value} which is then evaluated
 // using os.ExpandEnv. If variable starts with <escapeChar>$, the expansion
 // sequence will be ignored. For instance if the escapeChar is '\',
 // when \$value or \${value} is encountered, the variable expansion is ignored

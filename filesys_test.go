@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestFileReader(t *testing.T){
+func TestFileReader(t *testing.T) {
 	path := "/tmp/test_writer_reader.txt"
 	content := "Hello from file"
 	defer os.RemoveAll(path)

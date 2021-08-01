@@ -3,6 +3,8 @@ package gexe
 import (
 	"github.com/vladimirvivien/gexe/vars"
 )
+
+// Variables returns the variable mapping for echo session e
 func (e *Echo) Variables() *vars.Variables {
 	return e.vars
 }
@@ -22,7 +24,7 @@ func (e *Echo) Envs(val string) *Echo {
 
 // SetEnv sets a global process environment variable.
 func (e *Echo) SetEnv(name, value string) *Echo {
-	vars := e.vars.SetEnv(name,value)
+	vars := e.vars.SetEnv(name, value)
 	e.err = vars.Err()
 	return e
 }

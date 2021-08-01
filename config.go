@@ -35,6 +35,7 @@ func (c *Config) SetEscapeChar(r rune) *Config {
 	return c
 }
 
+// GetEscapeChar returns the escape char set for command-line parsing
 func (c *Config) GetEscapeChar() rune {
 	return c.escapeChar
 }
