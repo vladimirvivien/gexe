@@ -108,4 +108,3 @@ func isQuote(r rune) bool {
 func isChar(r rune) bool {
 	return !isQuote(r) && !unicode.IsSpace(r)
 }
-

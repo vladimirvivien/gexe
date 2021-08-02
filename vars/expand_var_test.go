@@ -371,7 +371,7 @@ func TestExpandVar_Eval(t *testing.T) {
 			expected: `/bin/bash -c 'files=$(sudo find /var/logs); for f in $files; do cat $f; done'`,
 		},
 		{
-			name: `ExpandVar shell with default % escape`,
+			name:       `ExpandVar shell with default % escape`,
 			escapeChar: '%',
 			setup: func(v *Variables) *Variables {
 				return v.SetEnv("DIR", "/var/logs")

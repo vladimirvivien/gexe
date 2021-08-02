@@ -4,7 +4,8 @@ import (
 	"github.com/vladimirvivien/gexe/prog"
 )
 
-func (e *Echo) Prog() *prog.ProgInfo {
+// Prog creates a new prog.Info to get information
+// about the running program
+func (e *Echo) Prog() *prog.Info {
 	return e.prog
 }
-

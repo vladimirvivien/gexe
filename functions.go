@@ -7,6 +7,7 @@ import (
 	"github.com/vladimirvivien/gexe/vars"
 )
 
+// Variables returns variable map for DefaultEcho session
 func Variables() *vars.Variables {
 	return DefaultEcho.Variables()
 }
@@ -92,7 +93,7 @@ func Write(path string) fs.FileWriter {
 	return DefaultEcho.Write(path)
 }
 
-// Prog returns program information via *prog.ProgInfo
-func Prog() *prog.ProgInfo {
+// Prog returns program information via *prog.Info
+func Prog() *prog.Info {
 	return DefaultEcho.Prog()
 }

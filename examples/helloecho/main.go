@@ -7,14 +7,6 @@ import (
 	"github.com/vladimirvivien/gexe"
 )
 
-var (
-
-)
-
-func init() {
-
-}
-
 // This examples shows simple how to store value in
 // local or environment variables used in expansion
 // at runtime.

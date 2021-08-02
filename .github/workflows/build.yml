@@ -16,10 +16,20 @@ jobs:
     - name: Code checkout
       uses: actions/checkout@v1
 
+    - name: golangci-lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+        skip-go-installation: true
+
+    - name: Code sanity
+      run: |
+        go vet ./...
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
+
     - name: Run tests
       run: |
-        GO111MODULE=on go test -v ./...
+        go test -v ./...
 
     - name: Build
       run: |
-        GO111MODULE=on go build -v .
+        go build -v .

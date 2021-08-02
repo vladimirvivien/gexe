@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// Proc stores process info
+// Proc stores process info when running a process
 type Proc struct {
 	id         int
 	err        error
@@ -24,7 +24,7 @@ type Proc struct {
 }
 
 // StartProc creates a *Proc and starts an OS process but does not wait for
-// it to complete.
+// it to complete (use proc.Wait for that)
 func StartProc(cmdStr string) *Proc {
 	words, err := parse(cmdStr)
 	if err != nil {
@@ -56,8 +56,9 @@ func StartProc(cmdStr string) *Proc {
 }
 
 // RunProc creates, runs, and waits for a process to complete and
-// return *Proc with result info.  This can be followed by
-// Proc.Result() to access to string value of the returned by process.
+// return *Proc with result info.  This call must be followed by
+// Proc.Result() to access to a string value of the process result.
+// NOTE: using proc.Out() to access the reader will be empty.
 func RunProc(cmdStr string) *Proc {
 	proc := StartProc(cmdStr)
 	if proc.Err() != nil {
@@ -81,7 +82,7 @@ func RunProc(cmdStr string) *Proc {
 
 // Run creates and runs a process and returns the
 // result as a string.
-// Equivalent to: Proc.StartProc() -> Proc.Result()
+// Equivalent to: Proc.RunProc() -> Proc.Result()
 func Run(cmdStr string) (result string) {
 	proc := StartProc(cmdStr)
 	if proc.Err() != nil {
@@ -175,7 +176,7 @@ func (p *Proc) Kill() *Proc {
 	return p
 }
 
-// StdOut is a io.Reader pipe for standard out
+// StdOut is an io.Reader pipe for standard out
 // Must be streamed before Proc.Wait()
 func (p *Proc) StdOut() io.Reader {
 	return p.stdoutPipe
@@ -189,7 +190,7 @@ func (p *Proc) StdErr() io.Reader {
 
 // Out waits for cmd result and surfaces the result from both stdout and stderr
 // in an io.Reader that can be streamed.
-// Must be called after after Proc.StartProc, Proc.RunProc
+// NOTE: Must be called after Proc.StartProc
 func (p *Proc) Out() io.Reader {
 	if p.output != nil {
 		return p.output
@@ -206,7 +207,7 @@ func (p *Proc) Out() io.Reader {
 
 // Result waits and copies the result of the combined stdout and stderr
 // and returns its result as a string.
-// Must be called after Proc.StartProc Proc.RunProc() or Proc.Run().
+// NOTE: Must be called after Proc.StartProc, Proc.RunProc() or Proc.Run().
 func (p *Proc) Result() string {
 	if p.result != nil {
 		return strings.TrimSpace(p.result.String())

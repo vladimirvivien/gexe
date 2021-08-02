@@ -15,7 +15,7 @@ func TestProc(t *testing.T) {
 		exec   func(string)
 	}{
 		{
-			name: "start proc",
+			name:   "start proc",
 			cmdStr: `echo "HELLO WORLD!"`,
 			exec: func(cmd string) {
 				p := StartProc(cmd)
@@ -52,7 +52,7 @@ func TestProc(t *testing.T) {
 			},
 		},
 		{
-			name: "start proc/long-running",
+			name:   "start proc/long-running",
 			cmdStr: `/bin/bash -c 'for i in {1..3}; do echo "HELLO WORLD!"; sleep 0.7; done'`,
 			exec: func(cmd string) {
 				p := StartProc(cmd)
@@ -80,7 +80,7 @@ func TestProc(t *testing.T) {
 			},
 		},
 		{
-			name: "run proc",
+			name:   "run proc",
 			cmdStr: `echo "HELLO WORLD!"`,
 			exec: func(cmd string) {
 				p := RunProc(cmd)
@@ -96,7 +96,7 @@ func TestProc(t *testing.T) {
 			},
 		},
 		{
-			name: "simple run",
+			name:   "simple run",
 			cmdStr: `echo "HELLO WORLD!"`,
 			exec: func(cmd string) {
 				result := Run(cmd)
@@ -106,7 +106,7 @@ func TestProc(t *testing.T) {
 			},
 		},
 		{
-			name: "simple with expansion",
+			name:   "simple with expansion",
 			cmdStr: "echo $MSG",
 			exec: func(cmd string) {
 				v := vars.New().Vars("MSG=Hello World")

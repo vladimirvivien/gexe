@@ -15,7 +15,7 @@ func (e *Echo) StartProc(cmdStr string) *exec.Proc {
 // RunProc executes command in cmdStr and waits for the result.
 // It returns a *Proc with information about the executed process.
 func (e *Echo) RunProc(cmdStr string) *exec.Proc {
-	return exec.RunProc (e.Eval(cmdStr))
+	return exec.RunProc(e.Eval(cmdStr))
 }
 
 // Run executes cmdStr, waits, and returns the result as a string.

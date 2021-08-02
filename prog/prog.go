@@ -7,29 +7,29 @@ import (
 	"path/filepath"
 )
 
-// ProgInfo returns information about the
+// Info returns information about the
 // running program.
-type ProgInfo struct {
+type Info struct {
 	err error
 }
 
-
-func Prog() *ProgInfo {
-	return &ProgInfo{}
+// Prog is a constructor function that returns *Info
+func Prog() *Info {
+	return &Info{}
 }
 
 // Args returns a slice of the program arguments
-func (p *ProgInfo) Args() []string {
+func (p *Info) Args() []string {
 	return os.Args
 }
 
 // Err returns the last generated error from a method call
-func (p *ProgInfo) Err() error {
+func (p *Info) Err() error {
 	return p.err
 }
 
 // Exit prints messages and exits current program
-func (p *ProgInfo) Exit(code int, msgs ...string) {
+func (p *Info) Exit(code int, msgs ...string) {
 	for _, msg := range msgs {
 		fmt.Print(msg)
 	}
@@ -37,17 +37,17 @@ func (p *ProgInfo) Exit(code int, msgs ...string) {
 }
 
 // Pid program's process id
-func (p *ProgInfo) Pid() int {
+func (p *Info) Pid() int {
 	return os.Getpid()
 }
 
 // Ppid program's parent process id
-func (p *ProgInfo) Ppid() int {
+func (p *Info) Ppid() int {
 	return os.Getppid()
 }
 
 // Path of running program
-func (p *ProgInfo) Path() string {
+func (p *Info) Path() string {
 	path, err := os.Executable()
 	if err != nil {
 		p.err = err
@@ -57,12 +57,12 @@ func (p *ProgInfo) Path() string {
 }
 
 // Name of executable running
-func (p *ProgInfo) Name() string {
+func (p *Info) Name() string {
 	return filepath.Base(p.Path())
 }
 
 // Avail returns full path of binary name if available
-func (p *ProgInfo) Avail(progName string) string {
+func (p *Info) Avail(progName string) string {
 	path, err := exec.LookPath(progName)
 	if err != nil {
 		p.err = err
@@ -72,7 +72,7 @@ func (p *ProgInfo) Avail(progName string) string {
 }
 
 // Workdir returns the working directory
-func (p *ProgInfo) Workdir() string {
+func (p *Info) Workdir() string {
 	path, err := os.Getwd()
 	if err != nil {
 		p.err = err

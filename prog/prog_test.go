@@ -12,7 +12,7 @@ func TestEchoProg(t *testing.T) {
 		exec func()
 	}{
 		{
-			name: "test ProgInfo",
+			name: "test Info",
 			exec: func() {
 				if Prog().Pid() != os.Getpid() {
 					t.Errorf("expecting pid %d, got %d", os.Getpid(), Prog().Pid())

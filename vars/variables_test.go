@@ -242,7 +242,7 @@ func TestVariables_Eval(t *testing.T) {
 		{
 			name: "expansion multiple SetVars",
 			setup: func(vars *Variables) *Variables {
-				return vars.SetVar("foo","bar").SetVar("dood","daad")
+				return vars.SetVar("foo", "bar").SetVar("dood", "daad")
 			},
 			str:      "is $foo a $dood?",
 			expected: "is bar a daad?",
@@ -266,7 +266,7 @@ func TestVariables_Eval(t *testing.T) {
 		{
 			name: "expansion multiple SetEnvs",
 			setup: func(vars *Variables) *Variables {
-				return vars.SetEnv("foo","bar").SetEnv("dood","daad")
+				return vars.SetEnv("foo", "bar").SetEnv("dood", "daad")
 			},
 			str:      "is $foo a $dood?",
 			expected: "is bar a daad?",

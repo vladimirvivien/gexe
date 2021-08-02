@@ -12,11 +12,13 @@ var (
 	notSpaceRegex = regexp.MustCompile(`\S`)
 )
 
+// Str represents a string value
 type Str struct {
 	val string
 	err error
 }
 
+// String is constructor function that returns *Str
 func String(str string) *Str {
 	return &Str{val: str}
 }
@@ -31,17 +33,15 @@ func (s *Str) Err() error {
 	return s.err
 }
 
-
 // IsEmpty returns true if len(s) == 0
 func (s *Str) IsEmpty() bool {
 	return s.val == ""
 }
 
-// Streq returns true if both strings are equal
+// Eq returns true if both strings are equal
 func (s *Str) Eq(val1 string) bool {
-	return strings.EqualFold(s.val,val1)
+	return strings.EqualFold(s.val, val1)
 }
-
 
 // Split s.val using the sep as delimiter
 func (s *Str) Split(sep string) []string {
@@ -56,21 +56,21 @@ func (s *Str) SplitLines() []string {
 // SplitSpaces properly splits s.val into []elements
 // separated by one or more Unicode.IsSpace characters
 // i.e. SplitSpaces("ab   cd e\tf\ng") returns 5 elements
-func (s *Str) SplitSpaces() []string{
+func (s *Str) SplitSpaces() []string {
 	return notSpaceRegex.Split(s.val, -1)
 }
 
+// SplitRegex uses regular expression exp to split s.val
 func (s *Str) SplitRegex(exp string) []string {
 	return regexp.MustCompile(exp).Split(s.val, -1)
 }
-
 
 // Bytes returns []byte(s.val)
 func (s *Str) Bytes() []byte {
 	return []byte(s.val)
 }
 
-// ToBool converts s.val from string to a bool representation
+// Bool converts s.val from string to a bool representation
 // Check s.Err() for parsing errors
 func (s *Str) Bool() bool {
 	val, err := strconv.ParseBool(s.val)
@@ -80,7 +80,7 @@ func (s *Str) Bool() bool {
 	return val
 }
 
-// ToInt converts s.val from string to a int representation
+// Int converts s.val from string to a int representation
 // Check s.Err() for parsing errors
 func (s *Str) Int() int {
 	val, err := strconv.Atoi(s.val)
@@ -90,7 +90,7 @@ func (s *Str) Int() int {
 	return val
 }
 
-// ToFloat converts s.val from string to a float64 representation
+// Float64 converts s.val from string to a float64 representation
 // Check s.Error() for parsing errors
 func (s *Str) Float64() float64 {
 	val, err := strconv.ParseFloat(s.val, 64)
@@ -100,29 +100,30 @@ func (s *Str) Float64() float64 {
 	return val
 }
 
+// Reader returns an io.Reader to access the content.
 func (s *Str) Reader() io.Reader {
 	return bytes.NewReader([]byte(s.val))
 }
 
-
-// Lower returns val as lower case
+// ToLower returns val as lower case
 func (s *Str) ToLower() *Str {
 	s.val = strings.ToLower(s.val)
 	return s
 }
 
-// Upper returns val as upper case
+// ToUpper returns val as upper case
 func (s *Str) ToUpper() *Str {
 	s.val = strings.ToUpper(s.val)
 	return s
 }
 
-func(s *Str) ToTitle() *Str {
+// ToTitle returns strings.ToTitle for s.val
+func (s *Str) ToTitle() *Str {
 	s.val = strings.ToTitle(s.val)
 	return s
 }
 
-// Trim removes spaces around a val
+// TrimSpaces removes spaces around a val
 func (s *Str) TrimSpaces() *Str {
 	s.val = strings.TrimSpace(s.val)
 	return s
@@ -155,7 +156,7 @@ func (s *Str) ReplaceAll(old, new string) *Str {
 }
 
 // Concat concatenates val1 to s.val
-func (s *Str) Concat(vals...string) *Str {
+func (s *Str) Concat(vals ...string) *Str {
 	s.val = strings.Join(append([]string{s.val}, vals...), "")
 	return s
 }

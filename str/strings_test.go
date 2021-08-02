@@ -6,25 +6,25 @@ import (
 )
 
 func TestString_Concat(t *testing.T) {
-	tests := []struct{
-		name string
-		items []string
+	tests := []struct {
+		name     string
+		items    []string
 		expected string
 	}{
 		{
-			name : "single str",
-			items:[]string{"Bar"},
-			expected:"FooBar",
+			name:     "single str",
+			items:    []string{"Bar"},
+			expected: "FooBar",
 		},
 		{
-			name : "multiple items",
-			items:[]string{"Bar","Bazz"},
-			expected:"FooBarBazz",
+			name:     "multiple items",
+			items:    []string{"Bar", "Bazz"},
+			expected: "FooBarBazz",
 		},
 	}
 
 	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T){
+		t.Run(test.name, func(t *testing.T) {
 			s := String("Foo").Concat(test.items...)
 			if s.String() != test.expected {
 				t.Errorf("expecting %s, got %s", test.expected, s)
@@ -59,14 +59,16 @@ func TestString_IsEmpty(t *testing.T) {
 
 func TestString_Reader(t *testing.T) {
 	b := new(bytes.Buffer)
-	b.ReadFrom(String("Hello").Reader())
-	if b.String()  != "Hello" {
+	if _, err := b.ReadFrom(String("Hello").Reader()); err != nil {
+		t.Fatal(err)
+	}
+	if b.String() != "Hello" {
 		t.Fatal("Reader failed")
 	}
 }
 
 func TestString_ReplaceAll(t *testing.T) {
-	s := String("lieave in oeane hourea").ReplaceAll("ea","")
+	s := String("lieave in oeane hourea").ReplaceAll("ea", "")
 	if s.String() != "live in one hour" {
 		t.Fatal("ReplaceAll failed")
 	}

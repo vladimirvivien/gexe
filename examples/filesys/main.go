@@ -9,7 +9,6 @@ import (
 	"github.com/vladimirvivien/gexe/str"
 )
 
-
 // This example uses local git to create a file with commit logs.
 func main() {
 	buf := new(bytes.Buffer)
@@ -22,7 +21,7 @@ func main() {
 
 	gitfile := "./gitlog.txt"
 
-	if w := gexe.Write(gitfile).ReadFrom(buf); w.Err() != nil {
+	if w := gexe.Write(gitfile).From(buf); w.Err() != nil {
 		fmt.Println(w.Err())
 		os.Exit(1)
 	}
@@ -30,9 +29,8 @@ func main() {
 	// read the file and print
 	fmt.Println(gexe.Read(gitfile).String())
 
-	if err := os.Remove(gitfile); err != nil  {
+	if err := os.Remove(gitfile); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
-
