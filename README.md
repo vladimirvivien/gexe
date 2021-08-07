@@ -6,16 +6,18 @@ Script-like OS interaction wrapped in the security and type safety of the Go pro
 
 The goal of project `gexe` is to make it dead simple to write code that interacts with the OS (and/or other components) with the type safety of the Go programming language.
 
+> The project got renamed from Echo to Gexe because there's 
+> already a popular Go project named Echo.
+
 ## What can you do with `gexe`?
-* Prse and execute OS comands provided as plain and clear text as you would in a shell.
-* Support for variable exapansion in command string (i.e. `gexe.Run("echo $HOME")`)
+* Parse and execute OS commands provided as plain and clear text as you would in a shell.
+* Support for variable expansion in command string (i.e. `gexe.Run("echo $HOME")`)
 * Get process information (i.e. PID, status, exit code, etc)
 * Stream data from stdout while process is executing
 * Get program information (i.e. args, binary name, working dir, etc)
 * Easily read file content into different targets (string, bytes, io.Writer, etc)
 * Easily write file content from different sources (i.e. string, bytes, io.Reader, etc)
 * Integrate with your shell script using `go run`
-
 
 ## Using `gexe`
 

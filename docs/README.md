@@ -1,17 +1,18 @@
-# `echo` API Reference
+# `gexe` API Reference
 
 ## Variables
 
 ### Var, SetVar
-Echo supports storing values that can be accessed using method `e.Var()` for the duration of a session:
+Gexe supports storing values that can be accessed using method `e.Var()` for the duration of a session:
 ```
+e := New()
 e.Var("Foo=Bar")
 e.Var("Fuzz=${Foo} Buzz=Bazz") 
 ```
 Method `e.SetVar(name, value string)` saves a named value one at a time.
 
 ### Env, SetEnv
-Values can be made visible as environment variables for externally launced commands using method `e.Env()`. Both methods support value expansion as shown below:
+Values can be made visible as environment variables for externally launched commands using method `e.Env()`. Both methods support value expansion as shown below:
 ```
 e.Env("Foo=Bar")
 e.Env("Fuzz=${Foo} Buzz=Bazz")
@@ -20,7 +21,7 @@ e.Env("BAZZ=$HOME")
 Method `e.SetEnv(name, value string)` sets environment variables one value at a time.
 
 ### Expansion
-All `echo` methods support variable value expansion using `$name` or `${name}` which are automatically replaced with the value of the named variable.
+All `gexe` methods support variable value expansion using `$name` or `${name}` which are automatically replaced with the value of the named variable.
 
 ## Slices
 
@@ -151,28 +152,6 @@ e.Streq(string, string) bool // string equal
 e.Trim(string)string 
 ```
 
-## Files
-File operation methods:
-
-```
-e.Abs()
-e.Rel()
-e.Base()
-e.Dir()
-e.PathSym()
-e.Ext()
-e.PathJoin()
-e.PathMatched()
-e.IsExit()
-e.IsReg()
-e.IsDir()
-e.Mkdirs()
-e.Rmdirs()
-e.Chown()
-e.Chmod()
-e.AreSame() // Are files equal
-```
-
 ## User
 
 ```
@@ -181,8 +160,4 @@ e.Home()
 e.Gid()
 e.Uid()
 ```
-
-## Flagset
-...
-
 ## More to come
