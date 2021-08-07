@@ -6,8 +6,7 @@ Script-like OS interaction wrapped in the security and type safety of the Go pro
 
 The goal of project `gexe` is to make it dead simple to write code that interacts with the OS (and/or other components) with the type safety of the Go programming language.
 
-> The project got renamed from Echo to Gexe because there's 
-> already a popular Go project named Echo.
+> NOTE: this project got renamed from Echo to Gexe (see Project Name Change)
 
 ## What can you do with `gexe`?
 * Parse and execute OS commands provided as plain and clear text as you would in a shell.
@@ -115,7 +114,7 @@ func main() {
 }
 ```
 
-# Project Name
+# Project Name Change
 Originally this project was named `echo`.  However, another Go project by that name has gotten really popular.
 So this project was renamed `gexe` (pronounced Jesse).
 # License
