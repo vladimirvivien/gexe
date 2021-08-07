@@ -6,12 +6,12 @@ import (
 )
 
 var (
-	// DefaultEcho surfaces package-level Echo session
-	// used for all package functions
+	// DefaultEcho surfaces an Echo session used for all package functions
 	DefaultEcho = New()
 )
 
-// Echo represents a new Echo session
+// Echo represents a new Echo session used for accessing
+// Gexe types and methods.
 type Echo struct {
 	err  error
 	vars *vars.Variables // session vars
