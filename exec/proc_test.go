@@ -116,6 +116,16 @@ func TestProc(t *testing.T) {
 				}
 			},
 		},
+		{
+			name:   "bad command",
+			cmdStr: `foobar "HELLO WORLD!"`,
+			exec: func(cmd string) {
+				result := RunProc(cmd)
+				if result.Err() != nil {
+					t.Log(result.Err())
+				}
+			},
+		},
 	}
 
 	for _, test := range tests {

@@ -5,6 +5,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -59,16 +60,21 @@ func TestEchoRun(t *testing.T) {
 					t.Fatal(p.Err())
 				}
 
+				var mtex sync.RWMutex
 				buf := &bytes.Buffer{}
-				go func() {
-					if _, err := io.Copy(buf, p.StdOut()); err != nil {
+				go func(b *bytes.Buffer) {
+					defer mtex.Unlock()
+					mtex.Lock()
+					if _, err := io.Copy(b, p.StdOut()); err != nil {
 						t.Error(err)
 					}
-				}()
+				}(buf)
 
 				p.Wait()
 
+				mtex.RLock()
 				result := strings.TrimSpace(buf.String())
+				mtex.RUnlock()
 				result = spaces.ReplaceAllString(result, " ")
 				if !strings.Contains(result, "HELLO WORLD!") {
 					t.Fatal("Unexpected result:", result)
