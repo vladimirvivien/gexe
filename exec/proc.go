@@ -23,9 +23,9 @@ type Proc struct {
 	process    *os.Process
 }
 
-// StartProc creates a *Proc and starts an OS process but does not wait for
-// it to complete (use proc.Wait for that)
-func StartProc(cmdStr string) *Proc {
+// NewProc sets up command string to be started as an OS process, however
+// does not start the process.
+func NewProc(cmdStr string) *Proc {
 	words, err := parse(cmdStr)
 	if err != nil {
 		return &Proc{err: err}
@@ -40,25 +40,28 @@ func StartProc(cmdStr string) *Proc {
 		return &Proc{err: fmt.Errorf("%s; %s", outerr, errerr)}
 	}
 
-	if err := command.Start(); err != nil {
-		return &Proc{cmd: command, err: err}
-	}
-
 	return &Proc{
-		id:         command.Process.Pid,
 		cmd:        command,
-		process:    command.Process,
-		state:      command.ProcessState,
 		stdoutPipe: pipeout,
 		stderrPipe: pipeerr,
 		output:     output,
 	}
 }
 
+// StartProc sets up and starts an OS process, but does not wait for
+// it to complete (use proc.Wait for that)
+func StartProc(cmdStr string) *Proc {
+	proc := NewProc(cmdStr)
+	if proc.Err() != nil {
+		return proc
+	}
+	return proc.Start()
+}
+
 // RunProc creates, runs, and waits for a process to complete and
 // return *Proc with result info.  This call must be followed by
-// Proc.Result() to access to a string value of the process result.
-// NOTE: using proc.Out() to access the reader will be empty.
+// Proc.Result() to access command result as a string value.
+// NOTE: using proc.Out(), after this call, will be empty.
 func RunProc(cmdStr string) *Proc {
 	proc := StartProc(cmdStr)
 	if proc.Err() != nil {
@@ -92,7 +95,27 @@ func Run(cmdStr string) (result string) {
 	return proc.Result()
 }
 
-// Command returns the os/exec.Cmd that started the process
+// Start starts the associated command as an OS process
+// Errors can be accessed using p.Err()
+func (p *Proc) Start() *Proc {
+	if p.cmd == nil {
+		p.err = fmt.Errorf("cmd is nill")
+		return p
+	}
+
+	if err := p.cmd.Start(); err != nil {
+		p.err = err
+		return p
+	}
+
+	p.process = p.cmd.Process
+	p.id = p.cmd.Process.Pid
+	p.state = p.cmd.ProcessState
+
+	return p
+}
+
+// Commands returns the os/exec.Cmd that started the process
 func (p *Proc) Command() *osexec.Cmd {
 	return p.cmd
 }
