@@ -1,15 +1,9 @@
 package gexe
 
 import (
-	"bytes"
-	"io"
-	"regexp"
 	"strings"
-	"sync"
 	"testing"
 )
-
-var spaces = regexp.MustCompile(`\n`)
 
 func TestEchoRun(t *testing.T) {
 	tests := []struct {
@@ -60,33 +54,13 @@ func TestEchoRun(t *testing.T) {
 					t.Fatal(p.Err())
 				}
 
-				var mtex sync.RWMutex
-				buf := &bytes.Buffer{}
-				go func(b *bytes.Buffer) {
-					defer mtex.Unlock()
-					mtex.Lock()
-					if _, err := io.Copy(b, p.StdOut()); err != nil {
-						t.Error(err)
-					}
-				}(buf)
-
-				p.Wait()
-
-				mtex.RLock()
-				result := strings.TrimSpace(buf.String())
-				mtex.RUnlock()
-				result = spaces.ReplaceAllString(result, " ")
-				if !strings.Contains(result, "HELLO WORLD!") {
-					t.Fatal("Unexpected result:", result)
+				if err := p.Wait().Err(); err != nil {
+					t.Fatalf("proc failed to wait: %s", err)
 				}
 
-				// The following was failing when tested using containerized
-				// images on GitHub. Seems there may be a difference in interpreter.
-
-				//expected := "HELLO WORLD! HELLO WORLD! HELLO WORLD!"
-				//if expected != result {
-				//	t.Fatal("Unexpected result: ", result)
-				//}
+				if !strings.Contains(p.Result(), "HELLO WORLD!") {
+					t.Fatal("Unexpected result:", p.Result())
+				}
 			},
 		},
 		{

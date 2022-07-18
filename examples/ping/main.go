@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"time"
 
@@ -17,19 +16,13 @@ func main() {
 	execTime := time.Second * 5
 	fmt.Println("ping golang.org...")
 
-	p := gexe.StartProc("ping golang.org")
+	p := gexe.NewProc("ping golang.org")
+	p.SetStdout(os.Stdout)
 
-	if p.Err() != nil {
-		fmt.Println("ping failed:", p.Err())
+	if p.Start().Err() != nil {
+		fmt.Println("ping failed to start:", p.Err())
 		os.Exit(1)
 	}
-
-	go func() {
-		if _, err := io.Copy(os.Stdout, p.StdOut()); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	}()
 
 	<-time.After(execTime)
 	if err := p.Kill().Err(); err != nil {

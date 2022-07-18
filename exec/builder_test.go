@@ -49,146 +49,298 @@ func TestCommandBuilder_Run(t *testing.T) {
 	tests := []struct {
 		name         string
 		commands     []string
+		results      []string
 		expectedCmds int
-	}{
-		{
-			name: "zero procs",
-		},
-		{
-			name:         "no error in procs",
-			commands:     []string{"echo 'hello world'", "date", "ls -al"},
-			expectedCmds: 3,
-		},
-		{
-			name:         "continue on 1 error",
-			commands:     []string{"foobar", "echo 'hello world'", "date", "ls -al"},
-			expectedCmds: 4,
-		},
-		{
-			name:         "continue on 2 errors",
-			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", "date", "ls -al"},
-			expectedCmds: 5,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			c := Commands(test.commands...).Run()
-			if len(c.procs) != test.expectedCmds {
-				t.Errorf("expecting %d procs to run, got %d", test.expectedCmds, len(c.procs))
-			}
-		})
-	}
-}
-
-func TestCommandBuilder_ConcurRun(t *testing.T) {
-	tests := []struct {
-		name         string
-		commands     []string
-		expectedCmds int
-	}{
-		{
-			name: "zero procs",
-		},
-		{
-			name:         "no error in procs",
-			commands:     []string{"echo 'hello world'", "date", "ls -al"},
-			expectedCmds: 3,
-		},
-		{
-			name:         "continue on 1 error",
-			commands:     []string{"foobar", "echo 'hello world'", "date", "ls -al"},
-			expectedCmds: 4,
-		},
-		{
-			name:         "continue on 2 errors",
-			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", "date", "ls -al"},
-			expectedCmds: 5,
-		},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			c := Commands(test.commands...).ConcurRun()
-			if len(c.procs) != test.expectedCmds {
-				t.Errorf("expecting %d procs to run, got %d", test.expectedCmds, len(c.procs))
-			}
-		})
-	}
-}
-
-func TestCommandBuilder_StartWait(t *testing.T) {
-	tests := []struct {
-		name         string
-		commands     []string
+		expectedErrs int
 		policy       CommandPolicy
-		expectedCmds int
 	}{
 		{
 			name: "zero procs",
 		},
 		{
 			name:         "no error in procs",
-			commands:     []string{"echo 'hello world'", "date", "ls -al"},
-			policy:       CmdOnErrContinue,
+			commands:     []string{"echo 'hello world'", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{"hello world", Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
 			expectedCmds: 3,
 		},
 		{
 			name:         "continue on 1 error",
-			commands:     []string{"foobar", "echo 'hello world'", "date", "ls -al"},
-			policy:       CmdOnErrContinue,
+			commands:     []string{"foobar", "echo 'hello world'", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{Run(`foobar`), "hello world", Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
 			expectedCmds: 4,
-		},
-		{
-			name:         "break on 1 error",
-			commands:     []string{"foobar", "echo 'hello world'", "date", "ls -al"},
-			policy:       CmdOnErrExit,
-			expectedCmds: 1,
+			expectedErrs: 1,
 		},
 		{
 			name:         "continue on 2 errors",
-			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", "date", "ls -al"},
-			policy:       CmdOnErrContinue,
+			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{Run(`foobar`), "hello world", Run(`daftpunk`), Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
 			expectedCmds: 5,
+			expectedErrs: 2,
 		},
 		{
-			name:         "break on 2 errors",
-			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", "date", "ls -al"},
-			policy:       CmdOnErrExit,
-			expectedCmds: 1,
-		},
-		{
-			name:         "concurrently no errors",
-			commands:     []string{"echo 'hello world'", "date", "ls -al"},
-			policy:       CmdExecConcurrent,
-			expectedCmds: 3,
-		},
-		{
-			name:         "concurrent 1 error",
-			commands:     []string{"foobar", "echo 'hello world'", "date", "ls -al"},
-			policy:       CmdExecConcurrent,
-			expectedCmds: 4,
-		},
-		{
-			name:         "continue on 2 errors",
-			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", "date", "ls -al"},
-			policy:       CmdExecConcurrent,
-			expectedCmds: 5,
-		},
-		{
-			name:         "Concurr|Continue with 1 err",
-			commands:     []string{"man cat", "echo 'hello world'", "foo", "ls -al"},
-			policy:       CmdOnErrContinue | CmdExecConcurrent,
-			expectedCmds: 4,
+			name:         "stop on errors",
+			commands:     []string{"echo 'hello world'", "daftpunk", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{"hello world", Run(`daftpunk`), Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
+			expectedCmds: 2,
+			expectedErrs: 1,
+			policy:       ExitOnErrPolicy,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			c := Commands(test.commands...).WithPolicy(test.policy).Start().Wait()
-			if len(c.procs) != test.expectedCmds {
-				t.Errorf("expecting %d procs to run, got %d", test.expectedCmds, len(c.procs))
+			c := Commands(test.commands...).WithPolicy(test.policy).Run()
+			if len(c.Procs()) != test.expectedCmds {
+				t.Errorf("expecting %d procs to run, got %d", test.expectedCmds, len(c.Procs()))
+			}
+
+			if len(c.ErrProcs()) != test.expectedErrs {
+				t.Errorf("expecting %d procs errors, got %d", test.expectedErrs, len(c.ErrProcs()))
+			}
+
+			for i, p := range c.Procs() {
+				if p.Result() != test.results[i] {
+					t.Errorf("unexpected proc result: %s", p.Result())
+				}
 			}
 		})
 	}
 }
+
+func TestCommandBuilder_Start(t *testing.T) {
+	tests := []struct {
+		name         string
+		commands     []string
+		results      []string
+		expectedCmds int
+		expectedErrs int
+		policy       CommandPolicy
+	}{
+		{
+			name: "zero procs",
+		},
+		{
+			name:         "no error in procs",
+			commands:     []string{"echo 'hello world'", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{"hello world", Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
+			expectedCmds: 3,
+		},
+		{
+			name:         "continue on 1 error",
+			commands:     []string{"foobar", "echo 'hello world'", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{Run(`foobar`), "hello world", Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
+			expectedCmds: 4,
+			expectedErrs: 1,
+		},
+		{
+			name:         "continue on 2 errors",
+			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{Run(`foobar`), "hello world", Run(`daftpunk`), Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
+			expectedCmds: 5,
+			expectedErrs: 2,
+		},
+		{
+			name:         "stop on errors",
+			commands:     []string{"echo 'hello world'", "daftpunk", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{"hello world", Run(`daftpunk`), Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
+			expectedCmds: 2,
+			expectedErrs: 1,
+			policy:       ExitOnErrPolicy,
+		},
+
+		// concurrent
+		{
+			name:         "concurrent no errors",
+			commands:     []string{"echo 'hello world'", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{"hello world", Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
+			expectedCmds: 3,
+			policy:       ConcurrentExecPolicy,
+		},
+		{
+			name:         "concurrent on 1 error",
+			commands:     []string{"foobar", "echo 'hello world'", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{Run(`foobar`), "hello world", Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
+			expectedCmds: 4,
+			expectedErrs: 1,
+			policy:       ConcurrentExecPolicy,
+		},
+		{
+			name:         "concurrent on 2 errors",
+			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{Run(`foobar`), "hello world", Run(`daftpunk`), Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
+			expectedCmds: 5,
+			expectedErrs: 2,
+			policy:       ConcurrentExecPolicy,
+		},
+		{
+			name:         "concurrent on errors",
+			commands:     []string{"echo 'hello world'", "daftpunk", `date "+%Y-%m-%d"`, "ls -al"},
+			results:      []string{"hello world", Run(`daftpunk`), Run(`date "+%Y-%m-%d"`), Run(`ls -al`)},
+			expectedCmds: 4,
+			expectedErrs: 1,
+			policy:       ExitOnErrPolicy | ConcurrentExecPolicy, // ExitOnErr is ignored when concurrent
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := Commands(test.commands...).WithPolicy(test.policy).Start()
+			if len(result.Procs()) != 0 {
+				t.Fatal("expecting 0 completed processes at this point")
+			}
+			result = result.Wait()
+			if len(result.Procs()) != test.expectedCmds {
+				t.Errorf("expecting %d procs to run, got %d", test.expectedCmds, len(result.Procs()))
+			}
+
+			if len(result.ErrProcs()) != test.expectedErrs {
+				t.Errorf("expecting %d procs errors, got %d", test.expectedErrs, len(result.ErrProcs()))
+			}
+
+			for i, p := range result.Procs() {
+				if p.Result() != test.results[i] {
+					t.Errorf("unexpected proc result: %s", p.Result())
+				}
+			}
+		})
+	}
+}
+
+func TestCommandBuilder_Pipe(t *testing.T) {
+	tests := []struct {
+		name         string
+		commands     []string
+		results      []string
+		expectedCmds int
+		expectedErrs int
+	}{
+		{
+			name:         "one command",
+			commands:     []string{"echo 'hello world'"},
+			results:      []string{"hello world"},
+			expectedCmds: 1,
+		},
+		{
+			name:         "two commands",
+			commands:     []string{"echo -n 'hello world'", "wc -m"},
+			results:      []string{"11"},
+			expectedCmds: 2,
+		},
+		{
+			name:         "three commands",
+			commands:     []string{"echo -n 'hello world'", "grep world", "wc -w"},
+			results:      []string{"2"},
+			expectedCmds: 3,
+		},
+		{
+			name:         "three commands with 1 err",
+			commands:     []string{"echo -n 'hello world'", "foo", "wc -w"},
+			results:      []string{"2"},
+			expectedCmds: 2,
+			expectedErrs: 1,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			c := Commands(test.commands...).Pipe()
+			if len(c.Procs()) != test.expectedCmds {
+				t.Errorf("expecting %d procs to run, got %d", test.expectedCmds, len(c.Procs()))
+			}
+
+			if test.expectedErrs != len(c.ErrProcs()) {
+				t.Fatalf("expecting %d errors, but got %d", test.expectedErrs, len(c.ErrProcs()))
+			}
+			// for pipe, only check last result
+			p := c.LastProc()
+			if p.Err() != nil && test.expectedErrs == 0 {
+				t.Fatalf("last proc in pipe failed: %s", p.Err())
+			}
+			if p.Err() == nil && p.Result() != test.results[0] {
+				t.Errorf("unexpected proc result: %s", p.Result())
+			}
+		})
+	}
+}
+
+//func TestCommandBuilder_StartWait(t *testing.T) {
+//	tests := []struct {
+//		name         string
+//		commands     []string
+//		policy       CommandPolicy
+//		expectedCmds int
+//	}{
+//		{
+//			name: "zero procs",
+//		},
+//		{
+//			name:         "no error in procs",
+//			commands:     []string{"echo 'hello world'", "date", "ls -al"},
+//			policy:       CmdOnErrContinue,
+//			expectedCmds: 3,
+//		},
+//		{
+//			name:         "continue on 1 error",
+//			commands:     []string{"foobar", "echo 'hello world'", "date", "ls -al"},
+//			policy:       CmdOnErrContinue,
+//			expectedCmds: 4,
+//		},
+//		{
+//			name:         "break on 1 error",
+//			commands:     []string{"foobar", "echo 'hello world'", "date", "ls -al"},
+//			policy:       CmdOnErrExit,
+//			expectedCmds: 1,
+//		},
+//		{
+//			name:         "continue on 2 errors",
+//			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", "date", "ls -al"},
+//			policy:       CmdOnErrContinue,
+//			expectedCmds: 5,
+//		},
+//		{
+//			name:         "break on 2 errors",
+//			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", "date", "ls -al"},
+//			policy:       CmdOnErrExit,
+//			expectedCmds: 1,
+//		},
+//		{
+//			name:         "concurrently no errors",
+//			commands:     []string{"echo 'hello world'", "date", "ls -al"},
+//			policy:       CmdExecConcurrent,
+//			expectedCmds: 3,
+//		},
+//		{
+//			name:         "concurrent 1 error",
+//			commands:     []string{"foobar", "echo 'hello world'", "date", "ls -al"},
+//			policy:       CmdExecConcurrent,
+//			expectedCmds: 4,
+//		},
+//		{
+//			name:         "concurrent with 2 errors",
+//			commands:     []string{"foobar", "echo 'hello world'", "daftpunk", "date", "ls -al"},
+//			policy:       CmdExecConcurrent,
+//			expectedCmds: 5,
+//		},
+//		{
+//			name:         "Concurr|Continue with 1 err",
+//			commands:     []string{"man cat", "echo 'hello world'", "foo", "ls -al"},
+//			policy:       CmdOnErrContinue | CmdExecConcurrent,
+//			expectedCmds: 4,
+//		},
+//		{
+//			name:         "pipe no errors",
+//			commands:     []string{"echo 'hello world'", "ls -al"},
+//			policy:       CmdExecPipe,
+//			expectedCmds: 2,
+//		},
+//	}
+//
+//	for _, test := range tests {
+//		t.Run(test.name, func(t *testing.T) {
+//			c := Commands(test.commands...).WithPolicy(test.policy).Start().Wait()
+//			if len(c.procs) != test.expectedCmds {
+//				t.Errorf("expecting %d procs to run, got %d", test.expectedCmds, len(c.procs))
+//			}
+//		})
+//	}
+//}
