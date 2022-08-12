@@ -6,8 +6,16 @@ import (
 	"github.com/vladimirvivien/gexe/exec"
 )
 
+// NewProc setups a new process with specified command cmdStr and returns immediately
+// without starting. Use Proc.Wait to wait for exection and then retrieve process result.
+// Information about the running process is stored in *exec.Proc.
+func (e *Echo) NewProc(cmdStr string) *exec.Proc {
+	return exec.NewProc(cmdStr)
+}
+
 // StartProc executes the command in cmdStr and returns immediately
-// without waiting. Information about the running process is stored in *Proc.
+// without waiting. Use Proc.Wait to wait for exection and then retrieve process result.
+// Information about the running process is stored in *Proc.
 func (e *Echo) StartProc(cmdStr string) *exec.Proc {
 	return exec.StartProc(e.Eval(cmdStr))
 }
