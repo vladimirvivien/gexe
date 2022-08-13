@@ -2,7 +2,6 @@ package fs
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -86,7 +85,7 @@ func TestFileReader(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			if err := ioutil.WriteFile(test.file.path, []byte(test.file.content), 0744); err != nil {
+			if err := os.WriteFile(test.file.path, []byte(test.file.content), 0744); err != nil {
 				t.Fatal(err)
 			}
 			test.test(t, test.file)

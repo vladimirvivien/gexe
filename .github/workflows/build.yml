@@ -7,10 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up Go 1.16
+    - name: Set up Go 1.19
       uses: actions/setup-go@v1
       with:
-        go-version: 1.16.3
+        go-version: 1.19
       id: go
 
     - name: Code checkout
@@ -21,10 +21,15 @@ jobs:
       with:
         skip-go-installation: true
 
-    - name: Code sanity
+    - name: Code vetting
+      shell: bash
       run: |
         go vet ./...
-        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
+
+    - name: code format check
+      shell: bash
+      run: |
+        if [ "$(gofmt -s -l .)" != "" ]; then exit 1; fi
 
     - name: Run tests
       run: |
