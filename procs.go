@@ -35,3 +35,29 @@ func (e *Echo) Run(cmdStr string) string {
 func (e *Echo) Runout(cmdStr string) {
 	fmt.Print(e.Run(cmdStr))
 }
+
+// RunAll executes each command, in cmdStrs, successively.
+func (e *Echo) RunAll(cmdStrs ...string) *exec.CommandResult {
+	for i, cmd := range cmdStrs {
+		cmdStrs[i] = e.Eval(cmd)
+	}
+	return exec.Commands(cmdStrs...).Run()
+}
+
+// RunConcur executes each command, in cmdStrs, concurrently and waits
+// their completion.
+func (e *Echo) RunConcur(cmdStrs ...string) *exec.CommandResult {
+	for i, cmd := range cmdStrs {
+		cmdStrs[i] = e.Eval(cmd)
+	}
+	return exec.Commands(cmdStrs...).Concurr()
+}
+
+// Pipe executes each command, in cmdStrs, by piping the result
+// of the previous command as input to the next command until done.
+func (e *Echo) Pipe(cmdStrs ...string) *exec.PipedCommandResult {
+	for i, cmd := range cmdStrs {
+		cmdStrs[i] = e.Eval(cmd)
+	}
+	return exec.Commands(cmdStrs...).Pipe()
+}
