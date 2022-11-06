@@ -36,7 +36,24 @@ func (e *Echo) Runout(cmdStr string) {
 	fmt.Print(e.Run(cmdStr))
 }
 
-// RunAll executes each command, in cmdStrs, successively.
+// Commands returns a *exe.CommandBuilder to build a multi-command execution flow.
+func (e *Echo) Commands(cmdStrs ...string) *exec.CommandBuilder {
+	for i, cmd := range cmdStrs {
+		cmdStrs[i] = e.Eval(cmd)
+	}
+	return exec.Commands(cmdStrs...)
+}
+
+// StartAll starts the sequential execution of each command, in cmdStrs, and does not
+// wait for their completion.
+func (e *Echo) StartAll(cmdStrs ...string) *exec.CommandResult {
+	for i, cmd := range cmdStrs {
+		cmdStrs[i] = e.Eval(cmd)
+	}
+	return exec.Commands(cmdStrs...).Start()
+}
+
+// RunAll executes each command sequentially, in cmdStrs, and wait for their completion.
 func (e *Echo) RunAll(cmdStrs ...string) *exec.CommandResult {
 	for i, cmd := range cmdStrs {
 		cmdStrs[i] = e.Eval(cmd)
@@ -44,13 +61,22 @@ func (e *Echo) RunAll(cmdStrs ...string) *exec.CommandResult {
 	return exec.Commands(cmdStrs...).Run()
 }
 
-// RunConcur executes each command, in cmdStrs, concurrently and waits
+// StartConcur starts the concurrent execution of each command, in cmdStrs, and does not
+// wait for their completion.
+func (e *Echo) StartConcur(cmdStrs ...string) *exec.CommandResult {
+	for i, cmd := range cmdStrs {
+		cmdStrs[i] = e.Eval(cmd)
+	}
+	return exec.Commands(cmdStrs...).Concurr()
+}
+
+// RunConcur executes each command concurrently, in cmdStrs, and waits
 // their completion.
 func (e *Echo) RunConcur(cmdStrs ...string) *exec.CommandResult {
 	for i, cmd := range cmdStrs {
 		cmdStrs[i] = e.Eval(cmd)
 	}
-	return exec.Commands(cmdStrs...).Concurr()
+	return exec.Commands(cmdStrs...).Concurr().Wait()
 }
 
 // Pipe executes each command, in cmdStrs, by piping the result
