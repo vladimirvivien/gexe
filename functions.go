@@ -87,6 +87,23 @@ func Runout(cmdStr string) {
 	DefaultEcho.Runout(cmdStr)
 }
 
+// RunAll executes each command, in cmdStrs, successively.
+func RunAll(cmdStrs ...string) *exec.CommandResult {
+	return DefaultEcho.RunAll(cmdStrs...)
+}
+
+// RunConcur executes each command, in cmdStrs, concurrently and waits
+// their completion.
+func RunConcur(cmdStrs ...string) *exec.CommandResult {
+	return DefaultEcho.RunConcur(cmdStrs...)
+}
+
+// Pipe executes each command, in cmdStrs, by piping the result
+// of the previous command as input to the next command until done.
+func Pipe(cmdStrs ...string) *exec.PipedCommandResult {
+	return DefaultEcho.Pipe(cmdStrs...)
+}
+
 // Read creates an fs.FileReader that
 // can be used to read content from files.
 func Read(path string) fs.FileReader {
