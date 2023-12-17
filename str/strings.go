@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/vladimirvivien/gexe/vars"
 )
 
 var (
@@ -14,13 +16,21 @@ var (
 
 // Str represents a string value
 type Str struct {
-	val string
-	err error
+	val  string
+	err  error
+	vars *vars.Variables
 }
 
 // String is constructor function that returns *Str
 func String(str string) *Str {
-	return &Str{val: str}
+	return &Str{val: str, vars: &vars.Variables{}}
+}
+
+// StringWithVars sets session variables and calls func String
+func StringWithVars(str string, variables *vars.Variables) *Str {
+	s := String(variables.Eval(str))
+	s.vars = variables
+	return s
 }
 
 // String returns the string value
@@ -157,7 +167,11 @@ func (s *Str) ReplaceAll(old, new string) *Str {
 
 // Concat concatenates val1 to s.val
 func (s *Str) Concat(vals ...string) *Str {
-	s.val = strings.Join(append([]string{s.val}, vals...), "")
+	evals := []string{s.val}
+	for _, val := range vals {
+		evals = append(evals, s.vars.Eval(val))
+	}
+	s.val = strings.Join(evals, "")
 	return s
 }
 

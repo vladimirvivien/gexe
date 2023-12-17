@@ -152,6 +152,31 @@ func TestVariables_SetVar(t *testing.T) {
 	}
 }
 
+func TestVariables_UnsetVar(t *testing.T) {
+	tests := []struct {
+		name    string
+		varName string
+		varVal  string
+	}{
+		{
+			name:    "simple value",
+			varName: "foo",
+			varVal:  "bar",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			vars := New()
+			vars.SetVar(test.varName, test.varVal)
+			vars.UnsetVar(test.varName)
+
+			if _, ok := vars.vars[test.varName]; ok {
+				t.Errorf("var %s: still set after Unset", test.varName)
+			}
+		})
+	}
+}
+
 func TestVariables_Val(t *testing.T) {
 	tests := []struct {
 		name  string

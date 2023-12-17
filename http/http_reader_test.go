@@ -42,11 +42,11 @@ func TestHttpReader_String(t *testing.T) {
 func TestHttpReader_Bytes(t *testing.T) {
 	tests := []struct {
 		name string
-		data []byte
+		data string
 	}{
 		{name: "no data"},
-		{name: "string0", data: []byte("Hello World!")},
-		{name: "string1", data: []byte("Hello\nWorld!")},
+		{name: "string0", data: "Hello World!"},
+		{name: "string1", data: "Hello\nWorld!"},
 	}
 
 	for _, test := range tests {
@@ -61,13 +61,15 @@ func TestHttpReader_Bytes(t *testing.T) {
 				t.Fatal(r.Err())
 			}
 
-			dataLen := len(r.Bytes())
+			data := r.Bytes()
+			dataLen := len(data)
+
 			if dataLen != len(test.data) {
-				t.Fatal("unexpected server response length: ", dataLen)
+				t.Fatalf("unexpected server response length: %d ", dataLen)
 			}
 
-			if strings.TrimSpace(string(r.Bytes())) != string(test.data) {
-				t.Fatal("unexpected server response: ", r.String())
+			if strings.TrimSpace(string(data)) != test.data {
+				t.Fatalf("unexpected server response: %s", r.String())
 			}
 		})
 	}
@@ -141,9 +143,8 @@ func TestHttpReader_Do(t *testing.T) {
 				t.Fatal("unexpected server response length: ", dataLen)
 			}
 
-			res := r.Response()
-			if res.StatusCode() != test.status {
-				t.Fatal("got unexpected status code: ", res.StatusCode())
+			if r.StatusCode() != test.status {
+				t.Fatal("got unexpected status code: ", r.StatusCode())
 			}
 		})
 	}

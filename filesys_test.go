@@ -10,10 +10,10 @@ func TestFileReader(t *testing.T) {
 	content := "Hello from file"
 	defer os.RemoveAll(path)
 
-	if err := Write(path).String(content).Err(); err != nil {
+	if err := FileWrite(path).String(content).Err(); err != nil {
 		t.Fatal(err)
 	}
-	if Read(path).String() != content {
+	if FileRead(path).String() != content {
 		t.Error("unexpected file content")
 	}
 }
