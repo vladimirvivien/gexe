@@ -12,7 +12,6 @@ import (
 // at runtime.
 func main() {
 	e := gexe.New()
-	e.Conf.SetPanicOnErr(false)
 	e.Vars("MYUSERNAME=$USER")
 	if e.Eval("$MYUSERNAME") == "" {
 		fmt.Println("You were not found")
