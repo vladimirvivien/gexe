@@ -58,6 +58,10 @@ func (p *FSPath) MkDir(mode fs.FileMode) *FSInfo {
 	return &FSInfo{path: p.path, info: info, mode: info.Mode(), vars: p.vars}
 }
 
+func (p *FSPath) MkDirTemp() *FSInfo {
+
+}
+
 // Remove removes entry at path
 func (p *FSPath) Remove() *FSInfo {
 	info, err := os.Stat(p.path)

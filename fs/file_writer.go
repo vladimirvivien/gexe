@@ -160,3 +160,13 @@ func (fw *FileWriter) From(r io.Reader) *FileWriter {
 	}
 	return fw
 }
+
+// File returns a file to write content to.
+// Ensure to call Close when done writing to the writer.
+func (fw *FileWriter) File() *os.File {
+	file, err := os.OpenFile(fw.path, fw.flags, fw.mode)
+	if err != nil {
+		fw.err = err
+	}
+	return file
+}
