@@ -1,163 +1,198 @@
 # `gexe` API Reference
 
-## Variables
+## Package `gexe`
+The `gexe` top-level package provides functions that wraps access to other top-level packages via a package instance of type `Echo` to make access API functionalities easier. Package `gexe` exposes an instance of `Echo` called `DefaultEcho` that is used to provide access to an `Echo` values and methods.
 
-### Var, SetVar
-Gexe supports storing values that can be accessed using method `e.Var()` for the duration of a session:
-```
-e := New()
-e.Var("Foo=Bar")
-e.Var("Fuzz=${Foo} Buzz=Bazz") 
-```
-Method `e.SetVar(name, value string)` saves a named value one at a time.
+### `gexe.Echo`
+The `Echo` type provides access to a session that exposes all of the functionalities of the API. Echo tracks the followings:
+* Error
+* Session variables
+* Program information
 
-### Env, SetEnv
-Values can be made visible as environment variables for externally launched commands using method `e.Env()`. Both methods support value expansion as shown below:
-```
-e.Env("Foo=Bar")
-e.Env("Fuzz=${Foo} Buzz=Bazz")
-e.Env("BAZZ=$HOME")
-```
-Method `e.SetEnv(name, value string)` sets environment variables one value at a time.
+You can create a new Echo session using the `gexe.New()` method:
 
-### Expansion
-All `gexe` methods support variable value expansion using `$name` or `${name}` which are automatically replaced with the value of the named variable.
-
-## Slices
-
-### Split
-A space-separated list can be turned into a native Go `[]string` using the `e.Split()` method as shown:
+```go
+e := gexe.New()
+e.Run(`echo "Hello World!"`)
 ```
-e.SetVar("list", "item3 item4")
-for _, val := range e.Split("item0 item1 item2 $list"){  
-    ...
+
+When using the `gexe` package instance of `Echo`, the previous example can be written as follows:
+
+```go
+gexe.Run(`echo "Hello World!"`)
+```
+## Package `exec`
+Package `exec` can be used to launch and manage external processes by wraping the `os/exec` types.  The package exposes functionalities such as the folliwngs:
+* Lauhch / kill externaal processes
+* Retrieve process information
+* Launch and manage multiple processes
+
+Package `exec` exposes type `Proc` which provides an entry point for process management. The following example shows how the package works:
+
+```go
+p := exec.NewProc(`echo "Hello World!"`)
+p.Start()
+if p.IsSuccess() {
+    fmt.Println("processess launched okay")
 }
 ```
 
-An additional separator value may be provided to `e.Split()`:
+The previous can be shortened using convenient functions found in the `exec` package:
+
+```go
+msg := exec.Run(`echo "Hello World!"`)
+fmt.Println(msg)
 ```
-e.SetVar("list", "item3;item4")
-for _, val := range e.Arr("Hello;World;!;$list", ";"){  
-    fmt.Println(val)
+
+The `gexe` package provides functions to access `exec` types to make it easy to launch and mange processes. The previous examples can be done using the `gexe` package:
+
+```go
+gexe.SetVar("msg", "World!")
+message = gexe.Run(`echo "Hello $msg"`)
+fmt.Print(message)
+```
+
+### Exec builders
+Package `exec` also exposes builders that are designed to launch and manage multiple external processes at once. For instance, the following uses the exec builder to download three files at once by launching three processes concurrently:
+
+```go
+cmds := exec.Commands(
+    "wget https://text/file1",
+    "wget https://text/file2",
+    "wget https://text/file3",
+).WithPolicy(exec.ConcerrentExecPolicy).Run()
+
+if len(cmds.Errs()) > 0 {
+    fmt.Println("There were errors")
 }
 ```
 
-### Glob
-Method `e.Glob()` expands the provided shell path pattern into a slice of matching file/directory names:
-```
-for _, f := range e.Glob("$HOME/go/src/*.com") {
-  fmt.Println(f)
+The previous can be simplified as follows:
+
+```go
+cmds := exec.Commands(
+    "wget https://text/file1",
+    "wget https://text/file2",
+    "wget https://text/file3",
+).Concurr()
+
+if len(cmds.Errs()) > 0 {
+    fmt.Println("There were errors")
 }
 ```
-## Program
-`Echo` exposes the `Prog` type which provides access to methods related to the running program as listed
-below:
-```
-e.Prog.Name() - Then name of the running binary
-e.Prog.Path() - the full path of the running binary
-e.Prog.Args() - Slice of CLI parameters
-e.Prog.Exit() - Exits the running program
-e.Prog.Pid() - The process ID for the program
-e.Prog.Ppid() - The program's parent process ID
-e.Prog.Workdir() - the current working directory of the program
-e.Prog.Avail(path) - Returns the full path of the specified program if available
-```
+As before, functionalities from the `exec` package is exposed via the `gexe` package. The previous example can be achieved using the `gexe` package as follows:
 
-## Processes
-`Echo` can be used to start external processes by wraping the `os/exec` types.  Methods that start processes
-return a `*Proc` value with information about the started process.
+```go
+cmds := gexe.RunConcur(
+    "wget https://text/file1",
+    "wget https://text/file2",
+    "wget https://text/file3",
+)
 
-### StartProc
-Method `e.StartProc(<command-string>)` starts a new process by running the provided command string.  The method 
-returns a Proc which can be used to track the process as shown below:
-
-```
-proc := e.StartProc('echo "Hello World!"')
-fmt.Println("Proces id", proc.ID)
-```
-Method `e.StartProc` returns immediately and does not wait for the process to complete.  This means Proc information
-may be incomplete since the process may still be running (see Managing Processes for detail).
-
-Each proc started is also saved in the Echo session and can be reached via slice `e.Procs[]`.
-
-
-### Managing Processes 
-When a process is launched with `StartProc`, it immediately returns a value of type `Proc` which exposes several methods to inspect the running 
-(or completed) process.
-
-```
-proc.ExitCode() - the process exit code
-proc.Exited() - true if program finished
-proc.ID() - the process ID
-proc.IsSuccess() - true if program finished with no error
-proc.Peek() - Updates process state information
-proc.SysTime() - the system time for the executed process
-proc.UserTime() - the system user time for executed process
-proc.Out() - exposes an io.Reader to stream result (generate error)
-proc.Result() - reads all command result from proc.Out() and returns it as string (generate error)
-proc.Wait() - Blocks, waits for a process to complete (generate error)
-```
-
-Type `Proc` stores the last error generated by invoking any of its methods.  The error can be accessed as `proc.Err()` as shown below:
-
-```
-proc := e.StartProc('echo "Hello world!"')
-proc.Wait()
-// optionally check for error
-if proc.Err() != nil {
-    fmt.Printl(proc.Err())
+if len(cmds.Errs()) > 0 {
+    fmt.Println("There were errors")
 }
 ```
 
-### RunProc
-As a convenience, the `Proc` namespace exposes three methods that will start a process and wait for it to complete.  First, method
-`e.RunProc` starts a process, wait for it to complete, then returns a value of type `Proc`:
+## Package `fs`
+This package exposes functionalities to create filesystem artifacts such as directories and files. The package makes it easy to create files and add content from different sources including string, bytes, other files, etc.
 
-```
-e.Var("CONTAINER_IMG", "hello-world")
-proc := e.RunProc('docker run --rm --detach $CONTAINER_IMG')
-r := proc.Result()
-if e.IsEmpty(r) || proc.Err() != nil {
-    fmt.Println("found error:", proc.Err())
+### Path and directories
+Package `fs` exposes type `Path` which provides the entry point for access an OS path. A path can point to a directory or an actual file. Once a path is referenced, the API provides additional functionalities to create or access path resources.  For instance, the following examples uses the `fs` package to create a directory:
+
+```go
+dir := fs.Path("/path/to/dir").MkDir(0744)
+if dir.Err() == nil {
+    fmt.Printf("Created dir %s", dir.Path())
 }
-fmt.Println("Ran container container:", r)
-
 ```
 
-### Run
-Method `e.Run` starts a process, wait for it to complete, and then returns a string value as the result from the executed command:
-```
-r := e.Var("CONTAINER_IMG", "hello-world").RunProc('docker run --rm --detach $CONTAINER_IMG')
-if e.IsEmpty(r) || proc.Err() != nil {
-    fmt.Println("found error:", proc.Err())
+Or, you can do the the same using `gexe` top-level package
+
+```go
+dir := gexe.MkDir("/path/to/dir", 0744)
+if dir.Err() == nil {
+    fmt.Printf("Created dir %s", dir.Path())
 }
-fmt.Println("Ran container container:", r)
-
-```
-Note that `e.Run` is equivalent to calling `e.RunProc` and then calling method `Result` on the returned `Proc`.
-
-### Runout
-Method `e.Runout` starts a process, wait for its completion, and then prints the result to standard output:
-
-```
-e.Var("CONTAINER_IMG", "hello-world").Runout('docker run --rm --detach $CONTAINER_IMG')
 ```
 
-## Strings
-```
-e.Empty(string) bool
-e.Lower(string) string
-e.Upper(string) string
-e.Streq(string, string) bool // string equal
-e.Trim(string)string 
+### Reading files
+The `fs` package provides access to functionalities to read content of existing files as shown in the follwoing example :
+
+```go
+data := fs.Read("/path/to/file")
+if data.Err() != nil{
+    fmt.Println("Unable to read file:", data.Err())
+}
+fmt.Println("File content:", data.String())
 ```
 
-## User
+The previous functionality can be accessed from the `gexe` package as shown below:
+```go
+data := gexe.ReadFile("/path/to/file")
+if data.Err() != nil{
+    fmt.Println("Unable to read file:", data.Err())
+}
+fmt.Println("File content:", data.String())
+```
 
+### Writing files
+The `fs` package also makes it eash to write content, from different sources, to a file as shown in the example below:
+
+```go
+get, _ := http.Get("https://test/file1")
+fs.Write("path/to/file").From(get.Body())
 ```
-e.Username()
-e.Home()
-e.Gid()
-e.Uid()
+
+Alternatively, the same functionality can be achieved using the `gexe` package:
+
+```go
+get, _ := http.Get("https://test/file1")
+gexe.FileWrite("path/to/file").From(get.Body())
 ```
-## More to come
+
+## Package `http`
+This package uses the Gexe programming model to make it easy to programmatically interact with HTTP servers.
+
+### Reading remote resources
+Reading a remote resource using the `http` package can be easily done as shown the following:
+
+```go
+f1 := http.Get("https://test/file1").String()
+fmt.Println(f1)
+```
+Similarly, package `http` makes it easy to post data to a remote HTTP server as shown in the following example:
+
+```go
+http.Post("https://test/message").String("Hello)
+```
+
+As before, functionalities from the `http` package are exposed as functions in the `gexe` package for easier access as shown below:
+
+```go
+gexe.FileWrite("/tmp/eapv2.txt").String(gexe.GetUrl("https://test/file1").String())
+```
+
+## Package `vars`
+Package `vars` exposes type `Variables` which lets you store named values that can be retrieved programmatically or using string expansion methods.
+
+### `vars.Variables`
+Type `Variables` is the main type that is used to manage variables.  It exposes several methods including
+* Set environment variables that are accessible to forked processes
+* Set session variables that are accessible to a running gexe session
+* Evaluate a string with embedded variable expansion values
+
+The following shows how to create a variable and use it
+
+```go
+v := vars.New()
+v.SetVar("msg", "World!")
+v.Eval(`Hello ${msg}!)
+```
+
+The `gexe.Echo` type maintains an instance of type `vars.Variables` which are used to store values for a gexe session as shown in the following exeample:
+
+```go
+gexe.SetVar("msg", "World")
+gexe.Run(`echo "Hello ${msg}!"`)
+```
