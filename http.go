@@ -6,22 +6,22 @@ import (
 	"github.com/vladimirvivien/gexe/http"
 )
 
-// Get creates a *http.ResourceReader to read resource content from HTTP server
-func (e *Echo) Get(url string, paths ...string) *http.ResourceReader {
+// Get uses an HTTP GET operation to retrieve server resources.
+func (e *Echo) Get(url string, paths ...string) *http.Response {
 	var exapandedUrl strings.Builder
 	exapandedUrl.WriteString(e.vars.Eval(url))
 	for _, path := range paths {
 		exapandedUrl.WriteString(e.vars.Eval(path))
 	}
-	return http.GetWithVars(exapandedUrl.String(), e.vars)
+	return http.GetWithVars(exapandedUrl.String(), e.vars).Do()
 }
 
-// Post creates a *http.ResourceWriter to write content to an HTTP server
-func (e *Echo) Post(url string, paths ...string) *http.ResourceWriter {
+// Post uses an HTTP POST operation to post data to the server.
+func (e *Echo) Post(data []byte, url string, paths ...string) *http.Response {
 	var exapandedUrl strings.Builder
 	exapandedUrl.WriteString(e.vars.Eval(url))
 	for _, path := range paths {
 		exapandedUrl.WriteString(e.vars.Eval(path))
 	}
-	return http.PostWithVars(exapandedUrl.String(), e.vars)
+	return http.PostWithVars(exapandedUrl.String(), e.vars).Bytes(data).Do()
 }

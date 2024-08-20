@@ -162,14 +162,14 @@ func FileWrite(path string) *fs.FileWriter {
 	return DefaultEcho.FileWrite(path)
 }
 
-// GetUrl creates a *http.ResourceReader to retrieve HTTP content
-func GetUrl(url string) *http.ResourceReader {
+// GetUrl GETs a remote HTTP resource specified by the URL
+func GetUrl(url string) *http.Response {
 	return DefaultEcho.Get(url)
 }
 
-// PostUrl creates a *http.ResourceWriter to write content to an HTTP server
-func PostUrl(url string) *http.ResourceWriter {
-	return DefaultEcho.Post(url)
+// PostUrl posts data to the remote HTTP server location specified by the URL
+func PostUrl(data []byte, url string) *http.Response {
+	return DefaultEcho.Post(data, url)
 }
 
 // Prog returns program information via *prog.Info

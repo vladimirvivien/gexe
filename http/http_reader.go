@@ -1,7 +1,6 @@
 package http
 
 import (
-	"io"
 	"net/http"
 	"time"
 
@@ -45,46 +44,12 @@ func (r *ResourceReader) WithTimeout(to time.Duration) *ResourceReader {
 	return r
 }
 
-// Do invokes the client.Get to "GET" the content from server
-// Use Response.Err() to access server response errors
+// Do is a terminal method that actually retrieves the HTTP resource from the server.
+// It returns a gexe/http/*Response instance that can be used to access the result.
 func (r *ResourceReader) Do() *Response {
 	res, err := r.client.Get(r.url)
 	if err != nil {
 		return &Response{err: err}
 	}
 	return &Response{stat: res.Status, statCode: res.StatusCode, body: res.Body}
-}
-
-// Bytes returns the server response as a []byte
-// This is a shorthad for ResourceReader.Do().Bytes()
-func (r *ResourceReader) Bytes() []byte {
-	resp := r.Do()
-	if resp.Err() != nil {
-		r.err = resp.Err()
-		return nil
-	}
-	return resp.Bytes()
-}
-
-// String returns the server response as a string.
-// It is a shorthad for ResourceReader.Do().String()
-func (r *ResourceReader) String() string {
-	resp := r.Do()
-	if resp.Err() != nil {
-		r.err = resp.Err()
-		return ""
-	}
-	return resp.String()
-}
-
-// Body returns the server response body (as io.ReadCloser).
-// It is a shorthand for ResourceReader().Do().Body()
-// NOTE: ensure to close the stream when finished.
-func (r *ResourceReader) Body() io.ReadCloser {
-	resp := r.Do()
-	if resp.Err() != nil {
-		r.err = resp.Err()
-		return nil
-	}
-	return resp.Body()
 }
