@@ -64,8 +64,8 @@ func NewProcWithVars(cmdStr string, variables *vars.Variables) *Proc {
 	return p
 }
 
-// StartProc starts an OS process (setup a combined output of stdout, stderr) and does not wait for
-// it to complete. You must follow this with either proc.Wait() to wait for result directly. Otherwise,
+// StartProc starts an OS process (combines stdout/stderr) and does not wait for
+// it to complete. You must follow this with proc.Wait() to wait for result directly. Then,
 // call proc.Out() or proc.Result() which automatically waits and gather result.
 func StartProc(cmdStr string) *Proc {
 	proc := NewProc(cmdStr)
@@ -84,14 +84,21 @@ func StartProcWithVars(cmdStr string, variables *vars.Variables) *Proc {
 	return proc
 }
 
-// RunProc starts a new process and waits for its completion. Use Proc.Out() or Proc.Result()
-// to access the combined result from stdout and stderr.
+// RunProc starts a new process (with combined stdout/stderr) and waits for its completion.
+// Use Proc.Out() to access the command's output as an io.Reader (combining stdout and stderr).
+// Or, use Proc.Result() to access the commands output as a string.
 func RunProc(cmdStr string) *Proc {
 	proc := StartProc(cmdStr)
-	if proc.Err() != nil {
+	if procErr := proc.Err(); procErr != nil {
+		proc.err = procErr
 		return proc
 	}
-	proc.Out()
+	if err := proc.Wait().Err(); err != nil {
+		proc.err = err
+		return proc
+	}
+
+	//proc.Out()
 	return proc
 }
 
@@ -173,7 +180,8 @@ func (p *Proc) Wait() *Proc {
 // Run starts and wait for a process to complete.
 // Before calling p.Run(), setup proper access to the process' input/output (i.e. stdin,stdout, stderr)
 func (p *Proc) Run() *Proc {
-	if p.Start().Err() != nil {
+	if startErr := p.Start().Err(); startErr != nil {
+		p.err = startErr
 		return p
 	}
 	return p.Wait()
@@ -240,19 +248,19 @@ func (p *Proc) Kill() *Proc {
 // Out waits, after StartProc or Proc.Start has been called, for the cmd to complete
 // and returns the combined result (Stdout and Stderr) as a single reader to be streamed.
 func (p *Proc) Out() io.Reader {
-	if !p.hasStarted() {
-		p.cmd.Stdout = p.result
-		p.cmd.Stderr = p.result
-		if err := p.Start().Err(); err != nil {
-			return strings.NewReader(fmt.Sprintf("proc: out failed: %s", err))
-		}
-	}
+	// if !p.hasStarted() {
+	// 	p.cmd.Stdout = p.result
+	// 	p.cmd.Stderr = p.result
+	// 	if err := p.Start().Err(); err != nil {
+	// 		return strings.NewReader(fmt.Sprintf("proc: out failed: %s", err))
+	// 	}
+	// }
 
-	if !p.Exited() {
-		if err := p.Wait().Err(); err != nil {
-			return strings.NewReader(fmt.Sprintf("proc: out: failed to wait: %s", err))
-		}
-	}
+	// if !p.Exited() {
+	// 	if err := p.Wait().Err(); err != nil {
+	// 		return strings.NewReader(fmt.Sprintf("proc: out: failed to wait: %s", err))
+	// 	}
+	// }
 
 	return p.result
 }

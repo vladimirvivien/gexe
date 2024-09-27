@@ -8,7 +8,7 @@ import (
 	"github.com/vladimirvivien/gexe/vars"
 )
 
-func TestProc(t *testing.T) {
+func TestNewProc(t *testing.T) {
 	tests := []struct {
 		name   string
 		cmdStr string
@@ -83,11 +83,31 @@ func TestProc(t *testing.T) {
 				}
 			},
 		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.exec(test.cmdStr)
+		})
+	}
+}
+
+func TestStartProc(t *testing.T) {
+	tests := []struct {
+		name   string
+		cmdStr string
+		exec   func(string)
+	}{
 		{
 			name:   "start proc out",
 			cmdStr: `echo "Hello World"`,
 			exec: func(cmd string) {
 				proc := StartProc(cmd)
+
+				if err := proc.Wait().Err(); err != nil {
+					t.Fatalf("failed to wait: %s", err)
+				}
+
 				buf := new(bytes.Buffer)
 
 				if _, err := buf.ReadFrom(proc.Out()); err != nil {
@@ -102,7 +122,10 @@ func TestProc(t *testing.T) {
 			name:   "start proc with proc.Result()",
 			cmdStr: `echo "Hello World"`,
 			exec: func(cmd string) {
-				proc := StartProc(cmd)
+				proc := StartProc(cmd).Wait()
+				if err := proc.Err(); err != nil {
+					t.Fatalf("failed to start/wait proc: %s", err)
+				}
 				if strings.TrimSpace(proc.Result()) != "Hello World" {
 					t.Errorf("unexpected result: %s", proc.Result())
 				}
@@ -124,6 +147,11 @@ func TestProc(t *testing.T) {
 				}
 				if !p.hasStarted() {
 					t.Fatal("proc has not started")
+				}
+
+				// wait for proc to finish
+				if err := p.Wait().Err(); err != nil {
+					t.Fatalf("failed to wait for proc to finish: %s", err)
 				}
 
 				data := &bytes.Buffer{}
@@ -149,7 +177,8 @@ func TestProc(t *testing.T) {
 			name:   "start proc/long-running",
 			cmdStr: `/bin/bash -c 'for i in {1..3}; do echo "HELLO WORLD!"; sleep 0.7; done'`,
 			exec: func(cmd string) {
-				p := StartProc(cmd)
+				p := StartProc(cmd).Wait()
+
 				if p.Err() != nil {
 					t.Fatal(p.Err())
 				}
@@ -169,6 +198,21 @@ func TestProc(t *testing.T) {
 				}
 			},
 		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.exec(test.cmdStr)
+		})
+	}
+}
+
+func TestRunProc(t *testing.T) {
+	tests := []struct {
+		name   string
+		cmdStr string
+		exec   func(string)
+	}{
 		{
 			name:   "run proc with proc.Out()",
 			cmdStr: `echo "HELLO WORLD!"`,
@@ -237,6 +281,54 @@ func TestProc(t *testing.T) {
 				}
 
 				t.Log(result.Err())
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.exec(test.cmdStr)
+		})
+	}
+}
+
+func TestRun(t *testing.T) {
+	tests := []struct {
+		name   string
+		cmdStr string
+		exec   func(string)
+	}{
+		{
+			name:   "simple run",
+			cmdStr: `echo "HELLO WORLD!"`,
+			exec: func(cmd string) {
+				result := Run(cmd)
+				if result != "HELLO WORLD!" {
+					t.Fatal("Unexpected command result:", result)
+				}
+			},
+		},
+		{
+			name:   "run with expansion",
+			cmdStr: "echo $MSG",
+			exec: func(cmd string) {
+				v := vars.New().Vars("MSG=Hello World")
+				result := RunWithVars(cmd, v)
+				if result != v.Val("MSG") {
+					t.Fatal("Unexpected command result:", result)
+				}
+			},
+		},
+		{
+			name:   "bad command",
+			cmdStr: `foobar "HELLO WORLD!"`,
+			exec: func(cmd string) {
+				result := Run(cmd)
+				if !strings.Contains(result, "executable file not found") {
+					t.Errorf("Expecting result 'command not found', got: %s", result)
+				}
+
+				t.Log(result)
 			},
 		},
 	}
