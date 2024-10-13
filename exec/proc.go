@@ -29,9 +29,6 @@ type Proc struct {
 // NewProc sets up command string to be started as an OS process, however
 // does not start the process. The process must be started using a subsequent call to
 // Proc.StartXXX() or Proc.RunXXX() method.
-//
-// The new process sets a combined Stdout/Stderr (accessible via Proc.Out())
-// which can be overwritten using Proc.SetStdout() and Proc.SetStderr().
 func NewProc(cmdStr string) *Proc {
 	words, err := parse(cmdStr)
 	if err != nil {
@@ -39,31 +36,10 @@ func NewProc(cmdStr string) *Proc {
 	}
 
 	command := osexec.Command(words[0], words[1:]...)
-	pipeout, outerr := command.StdoutPipe()
-	pipeerr, errerr := command.StderrPipe()
-
-	if outerr != nil || errerr != nil {
-		return &Proc{err: fmt.Errorf("combinedOutput pipe: %s; %s", outerr, errerr)}
-	}
-
-	pipein, inerr := command.StdinPipe()
-	if inerr != nil {
-		return &Proc{err: fmt.Errorf("inputPipe err: %w", inerr)}
-	}
-
-	// set combined output by default
-	// Can be overwritten with calls to Proc.SetStdout(...), Proc.SetStderr(...)
-	result := new(bytes.Buffer)
-	command.Stdout = result
-	command.Stderr = result
-
 	return &Proc{
-		cmd:        command,
-		outputPipe: pipeout,
-		errorPipe:  pipeerr,
-		inputPipe:  pipein,
-		result:     result,
-		vars:       &vars.Variables{},
+		cmd:    command,
+		result: new(bytes.Buffer),
+		vars:   &vars.Variables{},
 	}
 }
 
@@ -74,11 +50,14 @@ func NewProcWithVars(cmdStr string, variables *vars.Variables) *Proc {
 	return p
 }
 
-// StartProc creates and starts an OS process (with combines stdout/stderr) and does not wait for
+// StartProc creates and starts an OS process (with combined stdout/stderr) and does not wait for
 // it to complete. You must follow this with proc.Wait() to wait for result directly. Then,
-// call proc.Out() or proc.Result() which automatically waits and gather result.
+// call proc.Out() or proc.Result() to access the process' result.
 func StartProc(cmdStr string) *Proc {
 	proc := NewProc(cmdStr)
+	proc.cmd.Stdout = proc.result
+	proc.cmd.Stderr = proc.result
+
 	if proc.Err() != nil {
 		return proc
 	}
@@ -130,7 +109,7 @@ func RunWithVars(cmdStr string, variables *vars.Variables) string {
 // Start starts the associated command as an OS process and does not wait for its result.
 // This call should follow a process creation using NewProc.
 // If you don't want to use the internal combined output streams, make sure to configure access
-// to the process' input/output (stdin,stdout,stderr) has been prior to calling Proc.Start().
+// to the process' input/output (stdin,stdout,stderr) prior to calling Proc.Start().
 func (p *Proc) Start() *Proc {
 	if p.err != nil {
 		return p
@@ -143,6 +122,14 @@ func (p *Proc) Start() *Proc {
 	if p.cmd == nil {
 		p.err = fmt.Errorf("cmd is nill")
 		return p
+	}
+
+	// wire an output if none was provided
+	if p.cmd.Stdout == nil {
+		p.cmd.Stdout = p.result
+	}
+	if p.cmd.Stderr == nil {
+		p.cmd.Stderr = p.result
 	}
 
 	if err := p.cmd.Start(); err != nil {
@@ -272,23 +259,13 @@ func (p *Proc) Kill() *Proc {
 	return p
 }
 
-// Out waits, after StartProc or Proc.Start has been called, for the cmd to complete
-// and returns the combined result (Stdout and Stderr) as a single reader to be streamed.
+// Out returns the combined result (Stdout/Stderr) as a single reader if StartProc, RunProc, or Run
+// package function was used to initiate the process. If Stdout/Stderr was set independently
+// (i.e. with proc.Setstdout(...)) proc.Out will be nil.
+//
+// NB: Out used to start/wait the process if necessary. However, that behavior has been deprecated.
+// You must ensure the process has been properly initiated prior to calling Out.
 func (p *Proc) Out() io.Reader {
-	// if !p.hasStarted() {
-	// 	p.cmd.Stdout = p.result
-	// 	p.cmd.Stderr = p.result
-	// 	if err := p.Start().Err(); err != nil {
-	// 		return strings.NewReader(fmt.Sprintf("proc: out failed: %s", err))
-	// 	}
-	// }
-
-	// if !p.Exited() {
-	// 	if err := p.Wait().Err(); err != nil {
-	// 		return strings.NewReader(fmt.Sprintf("proc: out: failed to wait: %s", err))
-	// 	}
-	// }
-
 	return p.result
 }
 
@@ -316,6 +293,7 @@ func (p *Proc) SetStdin(in io.Reader) {
 }
 
 // GetInputPipe returns a stream where the process input can be written to
+// Deprecated: conflicts with the way the underlying exe.Command works
 func (p *Proc) GetInputPipe() io.Writer {
 	return p.inputPipe
 }
@@ -331,6 +309,7 @@ func (p *Proc) SetStdout(out io.Writer) {
 }
 
 // GetOutputPipe returns a stream where the process output can be read from
+// Deprecated: conflicts with the way the underlying exe.Command works
 func (p *Proc) GetOutputPipe() io.Reader {
 	return p.outputPipe
 }
@@ -346,6 +325,7 @@ func (p *Proc) SetStderr(out io.Writer) {
 }
 
 // GetErrorPipe returns a stream where the process error can be read from
+// Deprecated: conflicts with the way the underlying exe.Command works
 func (p *Proc) GetErrorPipe() io.Reader {
 	return p.errorPipe
 }

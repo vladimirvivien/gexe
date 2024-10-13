@@ -12,12 +12,12 @@ func TestNewProc(t *testing.T) {
 	tests := []struct {
 		name   string
 		cmdStr string
-		exec   func(string)
+		exec   func(*testing.T, string)
 	}{
 		{
 			name:   "access result",
 			cmdStr: `echo "Hello World"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProc(cmd)
 				if err := proc.Start().Err(); err != nil {
 					t.Fatal(err)
@@ -34,7 +34,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "access proc.Out()",
 			cmdStr: `echo "Hello World"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProc(cmd)
 				if err := proc.Start().Wait().Err(); err != nil {
 					t.Fatal(err)
@@ -53,7 +53,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "with expansion",
 			cmdStr: "echo '$MSG'",
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProcWithVars(cmd, vars.New().SetVar("MSG", "Hello World"))
 				if err := proc.Start().Err(); err != nil {
 					t.Fatal(err)
@@ -69,7 +69,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "custom stdout/stderr",
 			cmdStr: `echo "Hello World"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProc(cmd)
 				buf := new(bytes.Buffer)
 				proc.SetStdout(buf)
@@ -87,7 +87,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "start with error",
 			cmdStr: `foo "Hello World"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProc(cmd)
 				if err := proc.Start().Err(); err == nil {
 					t.Fatalf("Expecting error, but got none")
@@ -105,7 +105,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "run with result",
 			cmdStr: `echo "Hello World"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProc(cmd)
 				if err := proc.Run().Err(); err != nil {
 					t.Fatal(err)
@@ -118,7 +118,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "run with proc.Out()",
 			cmdStr: `echo "Hello World"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProc(cmd)
 				if err := proc.Run().Err(); err != nil {
 					t.Fatal(err)
@@ -136,7 +136,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "missing command with Result",
 			cmdStr: `foobar "Hello World"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProc(cmd)
 
 				if err := proc.Run().Err(); err == nil {
@@ -154,7 +154,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "missing command with proc.Out",
 			cmdStr: `foobar "Hello World"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProc(cmd)
 
 				if err := proc.Run().Err(); err == nil {
@@ -169,7 +169,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "bad command with result",
 			cmdStr: `date -xx`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProc(cmd)
 
 				err := proc.Run().Err()
@@ -186,7 +186,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "bad command with proc.Out",
 			cmdStr: `date -xx`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := NewProc(cmd)
 
 				err := proc.Run().Err()
@@ -208,7 +208,7 @@ func TestNewProc(t *testing.T) {
 		{
 			name:   "proc status",
 			cmdStr: `echo "HELLO WORLD!"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				p := NewProc(cmd).Start()
 
 				if p.Err() != nil {
@@ -245,7 +245,7 @@ func TestNewProc(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.exec(test.cmdStr)
+			test.exec(t, test.cmdStr)
 		})
 	}
 }
@@ -254,12 +254,12 @@ func TestStartProc(t *testing.T) {
 	tests := []struct {
 		name   string
 		cmdStr string
-		exec   func(string)
+		exec   func(*testing.T, string)
 	}{
 		{
 			name:   "access result",
 			cmdStr: `echo "Hello World"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := StartProc(cmd).Wait()
 				if err := proc.Err(); err != nil {
 					t.Fatalf("failed to start/wait proc: %s", err)
@@ -272,7 +272,7 @@ func TestStartProc(t *testing.T) {
 		{
 			name:   "access proc.Out",
 			cmdStr: `echo "Hello World"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := StartProc(cmd)
 
 				if err := proc.Wait().Err(); err != nil {
@@ -292,7 +292,7 @@ func TestStartProc(t *testing.T) {
 		{
 			name:   "with expansion",
 			cmdStr: "echo '$MSG'",
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := StartProcWithVars(cmd, vars.New().SetVar("MSG", "Hello World")).Wait()
 				if err := proc.Err(); err != nil {
 					t.Fatal(err)
@@ -305,7 +305,7 @@ func TestStartProc(t *testing.T) {
 		{
 			name:   "test proc status",
 			cmdStr: `echo "HELLO WORLD!"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				p := StartProc(cmd)
 				if p.Err() != nil {
 					t.Fatal("Unexpected error:", p.Err().Error())
@@ -340,7 +340,7 @@ func TestStartProc(t *testing.T) {
 		{
 			name:   "long-running",
 			cmdStr: `/bin/bash -c 'for i in {1..3}; do echo "HELLO WORLD!"; sleep 0.7; done'`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				p := StartProc(cmd).Wait()
 
 				if p.Err() != nil {
@@ -365,7 +365,7 @@ func TestStartProc(t *testing.T) {
 		{
 			name:   "missing command with result",
 			cmdStr: `foobar "HELLO WORLD!"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := StartProc(cmd).Wait()
 				if proc.Err() == nil {
 					t.Error("expecting command to fail")
@@ -380,7 +380,7 @@ func TestStartProc(t *testing.T) {
 		{
 			name:   "missing command with proc.Out",
 			cmdStr: `foobar "HELLO WORLD!"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := StartProc(cmd).Wait()
 				if proc.Err() == nil {
 					t.Error("expecting command to fail")
@@ -397,7 +397,7 @@ func TestStartProc(t *testing.T) {
 		{
 			name:   "bad command",
 			cmdStr: `date -xx`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := StartProc(cmd).Wait()
 				if proc.Err() == nil {
 					t.Error("expecting command to fail")
@@ -412,7 +412,7 @@ func TestStartProc(t *testing.T) {
 		{
 			name:   "bad command with proc.Out",
 			cmdStr: `date -xx`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := StartProc(cmd).Wait()
 				if proc.Err() == nil {
 					t.Error("expecting command to fail")
@@ -434,7 +434,7 @@ func TestStartProc(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.exec(test.cmdStr)
+			test.exec(t, test.cmdStr)
 		})
 	}
 }
@@ -443,12 +443,12 @@ func TestRunProc(t *testing.T) {
 	tests := []struct {
 		name   string
 		cmdStr string
-		exec   func(string)
+		exec   func(*testing.T, string)
 	}{
 		{
 			name:   "access result",
 			cmdStr: `echo "HELLO WORLD!"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				p := RunProc(cmd)
 				if p.ExitCode() != 0 {
 					t.Fatal("Expecting exit code 0, got:", p.ExitCode())
@@ -464,7 +464,7 @@ func TestRunProc(t *testing.T) {
 		{
 			name:   "access proc.Out()",
 			cmdStr: `echo "HELLO WORLD!"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				p := RunProc(cmd)
 				if p.ExitCode() != 0 {
 					t.Fatal("Expecting exit code 0, got:", p.ExitCode())
@@ -485,7 +485,7 @@ func TestRunProc(t *testing.T) {
 		{
 			name:   "with expansion",
 			cmdStr: "echo $MSG",
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				v := vars.New().Vars("MSG='Hello World'")
 				proc := RunProcWithVars(cmd, v)
 				if err := proc.Err(); err != nil {
@@ -499,7 +499,7 @@ func TestRunProc(t *testing.T) {
 		{
 			name:   "missing command with result",
 			cmdStr: `foobar "HELLO WORLD!"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := RunProc(cmd)
 				if proc.Err() == nil {
 					t.Error("expecting command to fail")
@@ -514,7 +514,7 @@ func TestRunProc(t *testing.T) {
 		{
 			name:   "missing command with proc.Out",
 			cmdStr: `foobar "HELLO WORLD!"`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := RunProc(cmd)
 				if proc.Err() == nil {
 					t.Error("expecting command to fail")
@@ -535,7 +535,7 @@ func TestRunProc(t *testing.T) {
 		{
 			name:   "bad command with result",
 			cmdStr: `date -xx`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := RunProc(cmd)
 				if proc.Err() == nil {
 					t.Error("expecting command to fail")
@@ -550,7 +550,7 @@ func TestRunProc(t *testing.T) {
 		{
 			name:   "bad command option with proc.Out",
 			cmdStr: `date -xx`,
-			exec: func(cmd string) {
+			exec: func(t *testing.T, cmd string) {
 				proc := RunProc(cmd)
 				if proc.Err() == nil {
 					t.Error("expecting command to fail")
@@ -572,7 +572,7 @@ func TestRunProc(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.exec(test.cmdStr)
+			test.exec(t, test.cmdStr)
 		})
 	}
 }

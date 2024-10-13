@@ -214,31 +214,31 @@ func TestCommandBuilder_Pipe(t *testing.T) {
 		expectedCmds int
 		expectedErrs int
 	}{
-		// {
-		// 	name:         "one command",
-		// 	commands:     []string{"echo 'hello world'"},
-		// 	results:      []string{"hello world"},
-		// 	expectedCmds: 1,
-		// },
+		{
+			name:         "one command",
+			commands:     []string{"echo 'hello world'"},
+			results:      []string{"hello world"},
+			expectedCmds: 1,
+		},
 		{
 			name:         "two commands",
 			commands:     []string{"echo -n 'hello world'", "wc -m"},
 			results:      []string{"11"},
 			expectedCmds: 2,
 		},
-		// {
-		// 	name:         "three commands",
-		// 	commands:     []string{"echo -n 'hello world'", "grep world", "wc -w"},
-		// 	results:      []string{"2"},
-		// 	expectedCmds: 3,
-		// },
-		// {
-		// 	name:         "three commands with 1 err",
-		// 	commands:     []string{"echo -n 'hello world'", "foo", "wc -w"},
-		// 	results:      []string{"2"},
-		// 	expectedCmds: 2,
-		// 	expectedErrs: 1,
-		// },
+		{
+			name:         "three commands",
+			commands:     []string{"echo -n 'hello world'", "grep world", "wc -w"},
+			results:      []string{"2"},
+			expectedCmds: 3,
+		},
+		{
+			name:         "three commands with 1 err",
+			commands:     []string{"echo -n 'hello world'", "foo", "wc -w"},
+			results:      []string{"2"},
+			expectedCmds: 2,
+			expectedErrs: 1,
+		},
 	}
 
 	for _, test := range tests {
@@ -249,6 +249,7 @@ func TestCommandBuilder_Pipe(t *testing.T) {
 			}
 
 			if test.expectedErrs != len(c.ErrProcs()) {
+				t.Logf("Errors: %#v", c.ErrStrings())
 				t.Fatalf("expecting %d errors, but got %d", test.expectedErrs, len(c.ErrProcs()))
 			}
 			// for pipe, only check last result

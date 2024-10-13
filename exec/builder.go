@@ -234,22 +234,24 @@ func (cb *CommandBuilder) Pipe() *PipedCommandResult {
 	var result PipedCommandResult
 	procLen := len(cb.procs)
 	if procLen == 0 {
-		return nil
+		return &PipedCommandResult{}
 	}
 
+	// wire last proc to combined output
 	last := procLen - 1
 	result.lastProc = cb.procs[last]
 	result.lastProc.cmd.Stdout = result.lastProc.result
 	result.lastProc.cmd.Stderr = result.lastProc.result
 
-	if procLen > 1 {
-		result.lastProc.cmd.Stdout = result.lastProc.result
-		// connect input/output between commands
-		for i, p := range cb.procs[:last] {
-			// link proc.Output to proc[next].Input
-			cb.procs[i+1].SetStdin(p.GetOutputPipe())
-			p.cmd.Stderr = p.result
+	result.lastProc.cmd.Stdout = result.lastProc.result
+	for i, p := range cb.procs[:last] {
+		pipeout, err := p.cmd.StdoutPipe()
+		if err != nil {
+			p.err = err
+			return &PipedCommandResult{errProcs: []*Proc{p}}
 		}
+
+		cb.procs[i+1].cmd.Stdin = pipeout
 	}
 
 	// start each process (but, not wait for result)
