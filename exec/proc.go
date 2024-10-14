@@ -162,7 +162,7 @@ func (p *Proc) Peek() *Proc {
 }
 
 // Wait waits for a previously started process to complete.
-// Ensure Proc.Start() has been called prior to calling Proc.Wait()
+// Wait should follow Proc.StartXXX() methods to ensure completion.
 func (p *Proc) Wait() *Proc {
 	if p.err != nil {
 		return p
@@ -264,7 +264,7 @@ func (p *Proc) Kill() *Proc {
 // (i.e. with proc.Setstdout(...)) proc.Out will be nil.
 //
 // NB: Out used to start/wait the process if necessary. However, that behavior has been deprecated.
-// You must ensure the process has been properly initiated prior to calling Out.
+// You must ensure the process has been properly initiated and wait for completion prior to calling Out.
 func (p *Proc) Out() io.Reader {
 	return p.result
 }

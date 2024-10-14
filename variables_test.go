@@ -8,7 +8,7 @@ func TestEchoVar(t *testing.T) {
 	tests := []struct {
 		name string
 		echo func() *Echo
-		test func(*Echo)
+		test func(*testing.T, *Echo)
 	}{
 		{
 			name: "SetVar",
@@ -18,7 +18,7 @@ func TestEchoVar(t *testing.T) {
 				e.SetVar("fuzz", "buzz")
 				return e
 			},
-			test: func(e *Echo) {
+			test: func(t *testing.T, e *Echo) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -34,7 +34,7 @@ func TestEchoVar(t *testing.T) {
 				e.Vars("foo=bar fuzz=buzz")
 				return e
 			},
-			test: func(e *Echo) {
+			test: func(t *testing.T, e *Echo) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -50,7 +50,7 @@ func TestEchoVar(t *testing.T) {
 				e.Vars("bazz=azz foo=bar\nfuzz=buzz")
 				return e
 			},
-			test: func(e *Echo) {
+			test: func(t *testing.T, e *Echo) {
 				if e.Val("bazz") != "azz" {
 					t.Fatal("unexpected value:", e.Val("bazz"))
 				}
@@ -70,7 +70,7 @@ func TestEchoVar(t *testing.T) {
 				e.Vars("foo=${bazz} fuzz=buzz")
 				return e
 			},
-			test: func(e *Echo) {
+			test: func(t *testing.T, e *Echo) {
 				if e.Val("foo") != "dazz" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -87,7 +87,7 @@ func TestEchoVar(t *testing.T) {
 				e.SetEnv("foo", "fuzz")
 				return e
 			},
-			test: func(e *Echo) {
+			test: func(t *testing.T, e *Echo) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -97,7 +97,7 @@ func TestEchoVar(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.test(test.echo())
+			test.test(t, test.echo())
 		})
 	}
 }
