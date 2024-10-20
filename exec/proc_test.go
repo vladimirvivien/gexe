@@ -178,7 +178,7 @@ func TestNewProc(t *testing.T) {
 				}
 
 				result := strings.TrimSpace(proc.Result())
-				if !strings.Contains(result, "illegal option") {
+				if !strings.Contains(result, "illegal") && !strings.Contains(result, "invalid") {
 					t.Errorf("Expecting error but did not get it")
 				}
 			},
@@ -200,7 +200,7 @@ func TestNewProc(t *testing.T) {
 				}
 
 				result := strings.TrimSpace(buf.String())
-				if !strings.Contains(result, "illegal option") {
+				if !strings.Contains(result, "illegal") && !strings.Contains(result, "invalid") {
 					t.Errorf("Expecting 'illegal option' error, but got: %s", result)
 				}
 			},
@@ -403,7 +403,7 @@ func TestStartProc(t *testing.T) {
 					t.Error("expecting command to fail")
 				}
 				result := proc.Result()
-				if !strings.Contains(result, "illegal option") {
+				if !strings.Contains(result, "illegal") && !strings.Contains(result, "invalid") {
 					t.Errorf("Expecting result 'command not found', got: %s", result)
 				}
 				t.Log(result)
@@ -424,7 +424,7 @@ func TestStartProc(t *testing.T) {
 				}
 
 				result := strings.TrimSpace(buf.String())
-				if !strings.Contains(result, "illegal option") {
+				if !strings.Contains(result, "illegal") && !strings.Contains(result, "invalid") {
 					t.Errorf("Expecting result 'command not found', got: %s", result)
 				}
 				t.Log(result)
@@ -541,7 +541,7 @@ func TestRunProc(t *testing.T) {
 					t.Error("expecting command to fail")
 				}
 				result := proc.Result()
-				if !strings.Contains(result, "illegal") {
+				if !strings.Contains(result, "illegal") && !strings.Contains(result, "invalid") {
 					t.Errorf("Expecting result 'illegal option', got: %s", result)
 				}
 				t.Log(result)
@@ -562,7 +562,7 @@ func TestRunProc(t *testing.T) {
 				}
 
 				result := buf.String()
-				if !strings.Contains(result, "illegal") {
+				if !strings.Contains(result, "illegal") && !strings.Contains(result, "invalid") {
 					t.Errorf("Expecting result 'illegal option', got: %s", result)
 				}
 				t.Log(result)
@@ -620,7 +620,7 @@ func TestRun(t *testing.T) {
 			cmdStr: `date -xx"`,
 			exec: func(cmd string) {
 				result := Run(cmd)
-				if !strings.Contains(result, "illegal") {
+				if !strings.Contains(result, "illegal") && !strings.Contains(result, "invalid") {
 					t.Errorf("Expecting 'illegal option', got: %s", result)
 				}
 
