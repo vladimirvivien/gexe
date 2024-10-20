@@ -10,22 +10,33 @@ import (
 )
 
 type FileReader struct {
-	err  error
-	path string
-	info os.FileInfo
-	mode os.FileMode
-	vars *vars.Variables
+	err     error
+	path    string
+	info    os.FileInfo
+	mode    os.FileMode
+	vars    *vars.Variables
+	content *bytes.Buffer
 }
 
-// Read creates a new FileReader using the provided path.
-// A non-nil FileReader.Err() is returned if file does not exist
-// or another error is generated.
+// Read reads the file at path and creates new FileReader.
+// Access file content using FileReader methods.
 func Read(path string) *FileReader {
 	info, err := os.Stat(path)
 	if err != nil {
 		return &FileReader{err: err, path: path}
 	}
-	return &FileReader{path: path, info: info, mode: info.Mode()}
+
+	fileData, err := os.ReadFile(path)
+	if err != nil {
+		return &FileReader{err: err, path: path}
+	}
+
+	return &FileReader{
+		path:    path,
+		info:    info,
+		mode:    info.Mode(),
+		content: bytes.NewBuffer(fileData),
+	}
 }
 
 // ReadWithVars creates a new FileReader and sets the reader's session variables
@@ -53,36 +64,23 @@ func (fr *FileReader) Info() os.FileInfo {
 
 // String returns the content of the file as a string value
 func (fr *FileReader) String() string {
-	file, err := os.Open(fr.path)
-	if err != nil {
-		fr.err = err
-		return ""
-	}
-	defer file.Close()
-
-	buf := new(bytes.Buffer)
-	if _, err := buf.ReadFrom(file); err != nil {
-		fr.err = err
-		return ""
-	}
-
-	return buf.String()
+	return fr.content.String()
 }
 
 // Lines returns the content of the file as slice of string
 func (fr *FileReader) Lines() []string {
-	file, err := os.Open(fr.path)
-	if err != nil {
-		fr.err = err
+	if fr.err != nil {
 		return []string{}
 	}
+
 	var lines []string
-	scnr := bufio.NewScanner(file)
+	scnr := bufio.NewScanner(fr.content)
 
 	for scnr.Scan() {
 		lines = append(lines, scnr.Text())
 	}
 
+	// err should never happen, but capture it anyway
 	if scnr.Err() != nil {
 		fr.err = scnr.Err()
 		return []string{}
@@ -93,33 +91,21 @@ func (fr *FileReader) Lines() []string {
 
 // Bytes returns the content of the file as []byte
 func (fr *FileReader) Bytes() []byte {
-	file, err := os.Open(fr.path)
-	if err != nil {
-		fr.err = err
-		return []byte{}
-	}
-	defer file.Close()
-
-	buf := new(bytes.Buffer)
-
-	if _, err := buf.ReadFrom(file); err != nil {
-		fr.err = err
+	if fr.err != nil {
 		return []byte{}
 	}
 
-	return buf.Bytes()
+	return fr.content.Bytes()
 }
 
 // Into reads the content of the file and writes
 // it into the specified Writer
 func (fr *FileReader) Into(w io.Writer) *FileReader {
-	file, err := os.Open(fr.path)
-	if err != nil {
-		fr.err = err
+	if fr.err != nil {
 		return fr
 	}
-	defer file.Close()
-	if _, err := io.Copy(w, file); err != nil {
+
+	if _, err := io.Copy(w, fr.content); err != nil {
 		fr.err = err
 	}
 	return fr
