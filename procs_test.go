@@ -8,15 +8,13 @@ import (
 func TestEchoRun(t *testing.T) {
 	tests := []struct {
 		name   string
-		cmdStr func() string
-		exec   func(string)
+		cmdStr string
+		exec   func(*testing.T, string)
 	}{
 		{
-			name: "start proc",
-			cmdStr: func() string {
-				return `echo "HELLO WORLD!"`
-			},
-			exec: func(cmd string) {
+			name:   "start proc",
+			cmdStr: `echo "HELLO WORLD!"`,
+			exec: func(t *testing.T, cmd string) {
 				p := DefaultEcho.StartProc(cmd)
 				if p.Err() != nil {
 					t.Fatal("Unexpected error:", p.Err().Error())
@@ -28,13 +26,16 @@ func TestEchoRun(t *testing.T) {
 					t.Fatal("Success should be false")
 				}
 
+				// wait for completion
+				if err := p.Wait().Err(); err != nil {
+					t.Fatalf("Failed to complete process: %s", err)
+				}
+
 				result := strings.TrimSpace(p.Result())
 				if result != "HELLO WORLD!" {
 					t.Errorf("Unexpected proc.Out(): %s", result)
 				}
 
-				// wait for completion
-				p.Wait()
 				if p.ExitCode() != 0 {
 					t.Fatal("Expecting exit code 0, got:", p.ExitCode())
 				}
@@ -44,11 +45,9 @@ func TestEchoRun(t *testing.T) {
 			},
 		},
 		{
-			name: "start proc/long-running",
-			cmdStr: func() string {
-				return `/bin/sh -c "for i in {1..3}; do echo 'HELLO WORLD!\$i'; sleep 0.2; done"`
-			},
-			exec: func(cmd string) {
+			name:   "start proc/long-running",
+			cmdStr: `/bin/sh -c "for i in {1..3}; do echo 'HELLO WORLD!\$i'; sleep 0.2; done"`,
+			exec: func(t *testing.T, cmd string) {
 				p := DefaultEcho.StartProc(cmd)
 				if p.Err() != nil {
 					t.Fatal(p.Err())
@@ -64,11 +63,9 @@ func TestEchoRun(t *testing.T) {
 			},
 		},
 		{
-			name: "run proc",
-			cmdStr: func() string {
-				return `echo "HELLO WORLD!"`
-			},
-			exec: func(cmd string) {
+			name:   "run proc",
+			cmdStr: `echo "HELLO WORLD!"`,
+			exec: func(t *testing.T, cmd string) {
 				p := DefaultEcho.RunProc(cmd)
 				if p.ExitCode() != 0 {
 					t.Fatal("Expecting exit code 0, got:", p.ExitCode())
@@ -82,11 +79,9 @@ func TestEchoRun(t *testing.T) {
 			},
 		},
 		{
-			name: "simple run",
-			cmdStr: func() string {
-				return `echo "HELLO WORLD!"`
-			},
-			exec: func(cmd string) {
+			name:   "simple run",
+			cmdStr: `echo "HELLO WORLD!"`,
+			exec: func(t *testing.T, cmd string) {
 				result := DefaultEcho.Run(cmd)
 				if result != "HELLO WORLD!" {
 					t.Fatal("Unexpected command result:", result)
@@ -95,11 +90,9 @@ func TestEchoRun(t *testing.T) {
 		},
 
 		{
-			name: "simple with expansion",
-			cmdStr: func() string {
-				return "echo $MSG"
-			},
-			exec: func(cmd string) {
+			name:   "simple with expansion",
+			cmdStr: "echo $MSG",
+			exec: func(t *testing.T, cmd string) {
 				DefaultEcho.Variables().Vars("MSG=Hello World")
 				result := DefaultEcho.Run(cmd)
 				if result != DefaultEcho.Variables().Val("MSG") {
@@ -111,7 +104,7 @@ func TestEchoRun(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.exec(test.cmdStr())
+			test.exec(t, test.cmdStr)
 		})
 	}
 }

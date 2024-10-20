@@ -8,7 +8,7 @@ func TestExpandVarStack(t *testing.T) {
 	tests := []struct {
 		name  string
 		stack func() *runeStack
-		test  func(*runeStack)
+		test  func(*testing.T, *runeStack)
 	}{
 		{
 			name: "push/pop",
@@ -20,7 +20,7 @@ func TestExpandVarStack(t *testing.T) {
 				s.push('$')
 				return s
 			},
-			test: func(s *runeStack) {
+			test: func(t *testing.T, s *runeStack) {
 				if s.depth() != 2 {
 					t.Errorf("unexpected stack depth: %d", s.depth())
 				}
@@ -37,7 +37,7 @@ func TestExpandVarStack(t *testing.T) {
 				s.pop()
 				return s
 			},
-			test: func(s *runeStack) {
+			test: func(t *testing.T, s *runeStack) {
 				if s.depth() != 3 {
 					t.Errorf("unexpected stack depth: %d", s.depth())
 				}
@@ -57,7 +57,7 @@ func TestExpandVarStack(t *testing.T) {
 				s.pop()
 				return s
 			},
-			test: func(s *runeStack) {
+			test: func(t *testing.T, s *runeStack) {
 				if s.depth() != 0 {
 					t.Errorf("unexpected stack.depth: %d", s.depth())
 				}
@@ -82,7 +82,7 @@ func TestExpandVarStack(t *testing.T) {
 				s.push('d')
 				return s
 			},
-			test: func(s *runeStack) {
+			test: func(t *testing.T, s *runeStack) {
 				if s.depth() != 2 {
 					t.Errorf("unexpected stack.depth: %d", s.depth())
 				}
@@ -98,7 +98,7 @@ func TestExpandVarStack(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.test(test.stack())
+			test.test(t, test.stack())
 		})
 	}
 }

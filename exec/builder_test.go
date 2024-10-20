@@ -249,6 +249,7 @@ func TestCommandBuilder_Pipe(t *testing.T) {
 			}
 
 			if test.expectedErrs != len(c.ErrProcs()) {
+				t.Logf("Errors: %#v", c.ErrStrings())
 				t.Fatalf("expecting %d errors, but got %d", test.expectedErrs, len(c.ErrProcs()))
 			}
 			// for pipe, only check last result

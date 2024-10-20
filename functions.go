@@ -162,14 +162,24 @@ func FileWrite(path string) *fs.FileWriter {
 	return DefaultEcho.FileWrite(path)
 }
 
-// GetUrl creates a *http.ResourceReader to retrieve HTTP content
-func GetUrl(url string) *http.ResourceReader {
-	return DefaultEcho.Get(url)
+// HttpGet starts an HTTP GET operation to retrieve resource at URL/path
+func HttpGet(url string, paths ...string) *http.ResourceReader {
+	return DefaultEcho.HttpGet(url, paths...)
 }
 
-// PostUrl creates a *http.ResourceWriter to write content to an HTTP server
-func PostUrl(url string) *http.ResourceWriter {
-	return DefaultEcho.Post(url)
+// Get is a convenient alias for HttpGet that retrieves specified resource at given URL/path
+func Get(url string, paths ...string) *http.Response {
+	return DefaultEcho.Get(url, paths...)
+}
+
+// HttpPost starts an HTTP POST operation to post resource to URL/path
+func HttpPost(url string, paths ...string) *http.ResourceWriter {
+	return DefaultEcho.HttpPost(url, paths...)
+}
+
+// Post is a convenient alias for HttpPost to post data at specified URL
+func Post(data []byte, url string) *http.Response {
+	return DefaultEcho.Post(data, url)
 }
 
 // Prog returns program information via *prog.Info

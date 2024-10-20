@@ -13,7 +13,7 @@ func main() {
 	// The following downloads a large text and saves the result
 	url := "https://www.gutenberg.org/cache/epub/2148/pg2148.txt"
 
-	if w := gexe.FileWrite("/tmp/eapv2.txt").From(gexe.GetUrl(url).Body()); w.Err() != nil {
+	if w := gexe.FileWrite("/tmp/eapv2.txt").From(gexe.Get(url).Body()); w.Err() != nil {
 		fmt.Println(w.Err())
 		os.Exit(1)
 	}

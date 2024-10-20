@@ -6,8 +6,8 @@ import (
 	"github.com/vladimirvivien/gexe/http"
 )
 
-// Get creates a *http.ResourceReader to read resource content from HTTP server
-func (e *Echo) Get(url string, paths ...string) *http.ResourceReader {
+// HttpGet starts an HTTP GET operation to retrieve server resource from given URL/paths.
+func (e *Echo) HttpGet(url string, paths ...string) *http.ResourceReader {
 	var exapandedUrl strings.Builder
 	exapandedUrl.WriteString(e.vars.Eval(url))
 	for _, path := range paths {
@@ -16,12 +16,22 @@ func (e *Echo) Get(url string, paths ...string) *http.ResourceReader {
 	return http.GetWithVars(exapandedUrl.String(), e.vars)
 }
 
-// Post creates a *http.ResourceWriter to write content to an HTTP server
-func (e *Echo) Post(url string, paths ...string) *http.ResourceWriter {
+// HttpPost starts an HTTP POST operation to post resource to a server at given URL/path.
+func (e *Echo) HttpPost(url string, paths ...string) *http.ResourceWriter {
 	var exapandedUrl strings.Builder
 	exapandedUrl.WriteString(e.vars.Eval(url))
 	for _, path := range paths {
 		exapandedUrl.WriteString(e.vars.Eval(path))
 	}
 	return http.PostWithVars(exapandedUrl.String(), e.vars)
+}
+
+// Get is convenient alias for HttpGet to retrieve a resource at given URL/path
+func (e *Echo) Get(url string, paths ...string) *http.Response {
+	return e.HttpGet(url, paths...).Do()
+}
+
+// Post is a convenient alias for HttpPost to post the specified data to given URL/path
+func (e *Echo) Post(data []byte, url string, paths ...string) *http.Response {
+	return e.HttpPost(url, paths...).Bytes(data).Do()
 }
