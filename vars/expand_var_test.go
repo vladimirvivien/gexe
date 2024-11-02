@@ -321,7 +321,7 @@ func TestExpandVar_Eval(t *testing.T) {
 		{
 			name: `ExpandVar multiple envs`,
 			setup: func(v *Variables) *Variables {
-				return v.Envs("bar=zaar bazz=raaz")
+				return v.Envs("bar=zaar", "bazz=raaz")
 			},
 			str:      `foo $bar with $bazz`,
 			expected: `foo zaar with raaz`,
@@ -329,7 +329,7 @@ func TestExpandVar_Eval(t *testing.T) {
 		{
 			name: `ExpandVar multiple envs with curlies`,
 			setup: func(v *Variables) *Variables {
-				return v.Envs("bar=zaar bazz=raaz")
+				return v.Envs("bar=zaar", "bazz=raaz")
 			},
 			str:      `foo ${bar} with ${bazz}`,
 			expected: `foo zaar with raaz`,
@@ -337,7 +337,7 @@ func TestExpandVar_Eval(t *testing.T) {
 		{
 			name: `ExpandVar multiple envs with missing var`,
 			setup: func(v *Variables) *Variables {
-				return v.Envs("bar=zaar bazz=raaz")
+				return v.Envs("bar=zaar", "bazz=raaz")
 			},
 			str:      `foo ${bar} with ${bazz} at $jazz`,
 			expected: `foo zaar with raaz at `,
@@ -345,7 +345,7 @@ func TestExpandVar_Eval(t *testing.T) {
 		{
 			name: `ExpandVar multiple envs embedded`,
 			setup: func(v *Variables) *Variables {
-				return v.Envs("bar=zaar bazz=raaz")
+				return v.Envs("bar=zaar", "bazz=raaz")
 			},
 			str:      `foo${bar}with that${bazz}`,
 			expected: `foozaarwith thatraaz`,
