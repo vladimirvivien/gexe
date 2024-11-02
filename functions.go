@@ -32,18 +32,15 @@ func SetEnv(name, value string) *Echo {
 	return DefaultEcho.SetEnv(name, value)
 }
 
-// Vars declares session-scope variables using
-// a multi-line space-separated list:
+// Vars declares multiple session-scope variables using
+// string literals:
 //
-//	Envs("foo=bar platform=amd64")
-//
-// Session vars can be used in string values
-// using Eval("My foo=$foo").
+//	Envs("foo=bar", "platform=amd64", `"data="info ${platform}"`)
 //
 // Note that session vars are only available
 // for the running process.
-func Vars(val string) *Echo {
-	return DefaultEcho.Vars(val)
+func Vars(variables ...string) *Echo {
+	return DefaultEcho.Vars(variables...)
 }
 
 // SetVar declares a session variable.

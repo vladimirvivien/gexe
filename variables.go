@@ -29,18 +29,15 @@ func (e *Echo) SetEnv(name, value string) *Echo {
 	return e
 }
 
-// Vars declares session-scope variables using
-// a multi-line space-separated list:
+// Vars declares multiple session-scope variables using
+// string literal format:
 //
-//	Envs("foo=bar platform=amd64")
-//
-// Session vars can be used in string values
-// using Eval("My foo=$foo").
+// Envs("foo=bar", "platform=amd64", `"data="info ${platform}"`)
 //
 // Note that session vars are only available
 // for the running process.
-func (e *Echo) Vars(val string) *Echo {
-	vars := e.vars.Vars(val)
+func (e *Echo) Vars(variables... string) *Echo {
+	vars := e.vars.Vars(variables...)
 	e.err = vars.Err()
 	return e
 }
