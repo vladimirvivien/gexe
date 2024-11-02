@@ -28,10 +28,10 @@ func TestEchoVar(t *testing.T) {
 			},
 		},
 		{
-			name: "Vars with single line",
+			name: "Vars multiple",
 			echo: func() *Echo {
 				e := New()
-				e.Vars("foo=bar fuzz=buzz")
+				e.Vars("foo=bar", "fuzz=buzz")
 				return e
 			},
 			test: func(t *testing.T, e *Echo) {
@@ -44,10 +44,10 @@ func TestEchoVar(t *testing.T) {
 			},
 		},
 		{
-			name: "Vars with multilines line",
+			name: "Vars with quoted",
 			echo: func() *Echo {
 				e := New()
-				e.Vars("bazz=azz foo=bar\nfuzz=buzz")
+				e.Vars("bazz=azz", `foo="bar"`, `fuzz='buzz'`)
 				return e
 			},
 			test: func(t *testing.T, e *Echo) {
@@ -67,7 +67,7 @@ func TestEchoVar(t *testing.T) {
 			echo: func() *Echo {
 				e := New()
 				e.SetVar("bazz", "dazz")
-				e.Vars("foo=${bazz} fuzz=buzz")
+				e.Vars("foo=${bazz}", "fuzz=buzz")
 				return e
 			},
 			test: func(t *testing.T, e *Echo) {
@@ -126,10 +126,10 @@ func TestEchoEnv(t *testing.T) {
 			},
 		},
 		{
-			name: "Env with single line",
+			name: "Envs",
 			echo: func() *Echo {
 				e := New()
-				e.Envs("foo=bar fuzz=buzz")
+				e.Envs("foo=bar", "fuzz=buzz")
 				return e
 			},
 			test: func(e *Echo) {
@@ -142,10 +142,10 @@ func TestEchoEnv(t *testing.T) {
 			},
 		},
 		{
-			name: "Env with multilines line",
+			name: "Envs quoated",
 			echo: func() *Echo {
 				e := New()
-				e.Envs("bazz=azz foo=bar\nfuzz=buzz")
+				e.Envs("bazz=azz", `foo="bar"`, `fuzz='buzz'`)
 				return e
 			},
 			test: func(e *Echo) {
@@ -165,7 +165,7 @@ func TestEchoEnv(t *testing.T) {
 			echo: func() *Echo {
 				e := New()
 				e.SetVar("bazz", "dazz")
-				e.Envs("foo=${bazz} fuzz=buzz")
+				e.Envs(`foo=${bazz}`, `fuzz=buzz`)
 				return e
 			},
 			test: func(e *Echo) {

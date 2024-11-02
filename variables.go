@@ -12,12 +12,12 @@ func (e *Echo) Variables() *vars.Variables {
 // Envs declares environment variables using
 // a multi-line space-separated list:
 //
-//	Envs("GOOS=linux GOARCH=amd64")
+//	Envs("GOOS=linux" "GOARCH=amd64", `platform="$GOOS:$GOARCH"`)
 //
 // Environment vars can be used in string values
 // using Eval("building for os=$GOOS")
-func (e *Echo) Envs(val string) *Echo {
-	vars := e.vars.Envs(val)
+func (e *Echo) Envs(variables ...string) *Echo {
+	vars := e.vars.Envs(variables...)
 	e.err = vars.Err()
 	return e
 }
