@@ -36,7 +36,7 @@ func (e *Echo) SetEnv(name, value string) *Echo {
 //
 // Note that session vars are only available
 // for the running process.
-func (e *Echo) Vars(variables... string) *Echo {
+func (e *Echo) Vars(variables ...string) *Echo {
 	vars := e.vars.Vars(variables...)
 	e.err = vars.Err()
 	return e
