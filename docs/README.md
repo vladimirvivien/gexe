@@ -1,26 +1,46 @@
-# `gexe` API Reference
+# `gexe` 
+The goal of project `gexe` is to make it simple to write code for system operation and task automation using a script-like API that offers the security and the type safety of the Go programming language.
 
-## Package `gexe`
-The `gexe` top-level package provides functions that wraps access to other top-level packages via a package instance of type `Echo` to make access API functionalities easier. Package `gexe` exposes an instance of `Echo` called `DefaultEcho` that is used to provide access to an `Echo` values and methods.
-
-### `gexe.Echo`
-The `Echo` type provides access to a session that exposes all of the functionalities of the API. Echo tracks the followings:
-* Error
-* Session variables
-* Program information
-
-You can create a new Echo session using the `gexe.New()` method:
+## The `gexe` session
+To get access to `gexe`'s functionalities, you must create a session. This is done as follows:
 
 ```go
-e := gexe.New()
-e.Run(`echo "Hello World!"`)
+g := gexe.New()
+```
+Variable `g` starts a `gexe` session (called Echo) that provide access to the followings:
+* Access functionalities from `gexe` subpackages
+* A session variable map
+* Reported errors
+
+A `gexe` session provides types and functions that offer convenient access to other top-level package functionalities. For instance, we can use the previously created session to run an OS command:
+
+```go
+g := gexe.New()
+fmt.Println(g.Run(`echo "Hello World!"`))
 ```
 
-When using the `gexe` package instance of `Echo`, the previous example can be written as follows:
+The top-level `gexe` package offers another level of convenience by exposing a default session called `gexe.DefaultEcho` that is created when the `gexe` package is initiated. So the previous program can be rewritten as:
+
+```go
+fmt.Println(gexe.Run(`echo "Hello World!"`))
+```
+
+As mentioned earlier, the `gexe` session provides shortcut access to all functionalities implemented by other packages. The following shows a short snippet of the functions that you can access using a `gexe` session:
 
 ```go
 gexe.Run(`echo "Hello World!"`)
+gexe.Pipe(`echo "Hello World!"`, "wc -l")
+gexe.PathExists("/tmp/myfile")
+gexe.Mkdir("/tmp/myapp")
+gexe.FileWrite("/tmp/myapp/myfile").String(gexe.Run(`echo "Hello World!"`))
+gexe.Get("https://somehost/someresource").String()
+...
+Etc
 ```
+See all top-level functions in [functions.go](../functions.go)
+
+These functions make use of the functionalities that are implemneted in the packages outlined below.
+
 ## Package `exec`
 Package `exec` can be used to launch and manage external processes by wraping the `os/exec` types.  The package exposes functionalities such as the folliwngs:
 * Lauhch / kill externaal processes
@@ -176,8 +196,8 @@ gexe.FileWrite("/tmp/eapv2.txt").String(gexe.GetUrl("https://test/file1").String
 ## Package `vars`
 Package `vars` exposes type `Variables` which lets you store named values that can be retrieved programmatically or using string expansion methods.
 
-### `vars.Variables`
-Type `Variables` is the main type that is used to manage variables.  It exposes several methods including
+### Type `vars.Variables`
+Type `vars.Variables` is the main type that is used to manage variables.  It exposes several methods including
 * Set environment variables that are accessible to forked processes
 * Set session variables that are accessible to a running gexe session
 * Evaluate a string with embedded variable expansion values
@@ -190,9 +210,63 @@ v.SetVar("msg", "World!")
 v.Eval(`Hello ${msg}!)
 ```
 
-The `gexe.Echo` type maintains an instance of type `vars.Variables` which are used to store values for a gexe session as shown in the following exeample:
+The `gexe` session maintains an instance of type `vars.Variables` which are used to store session variable values at runtime as shown below:
 
 ```go
 gexe.SetVar("msg", "World")
 gexe.Run(`echo "Hello ${msg}!"`)
+```
+### Setting session variables 
+You can use several methods, of type `vars.Variables`, to set variables.
+
+Setting session variables using string literals:
+
+```go
+gexe.Vars(`MSG1="Hello"`, `MSG2=World!`)
+gexe.Run(`echo "${MSG1} $MSG2")
+```
+You can set variables using the `vars.Variables.SetVar` method:
+
+```go
+gexe.SetVar("MSG1","Hello").SetVar("MSG2","World!")
+gexe.Run(`echo "${MSG1} $MSG2"`)
+```
+Sometimes, you may want to clear a previously set variable:
+
+```go
+gexe.SetVar("MSG1","Hello").SetVar("MSG2","World!")
+gexe.Run(`echo "${MSG1} $MSG2"`)
+gexe.UnsetVar("MSG1").UnsetVar("MSG2")
+```
+### Setting environment variables
+You can use several methods, from `vars.Variables` type, to create environment variables that can be accessed by processes launched by `gexe`.
+
+Setting environment variables using string literals:
+
+```go
+gexe.Envs(`GOOS="linux"`, `GOARCH=amd64`)
+gexe.Run(`go build .")
+```
+In the previous snippet, the `go build` command will have access to the environment variables `GOOS` and `GOARCH` at process runtime.
+
+Setting environment variables using key/value with method `vars.Variables.SetEnv`:
+
+```go
+gexe.SetEnv("GOOS","linux").SetEnv("GOARCH","amd64")
+gexe.Run(`go build .")
+```
+### Accessing variables
+There are a couple of ways you can access your session or environment variables once they are set.
+
+You can access your variables using variable expansion:
+
+```go
+gexe.SetEnv("GOOS","linux").SetEnv("GOARCH","amd64")
+gexe.Run(`echo "Building OS: $GOOS; ARC: $GOARCH"`)
+```
+Additionally, you can use `Variables` method `Val` to access variable values directly:
+
+```go
+gexe.SetEnv("GOOS","linux").SetEnv("GOARCH","amd64")
+gexe.Run(fmt.Sprintf(`echo "Building OS: %s ARC: %s`, gexe.Val("GOOS"), gexe.Val("GOARCH")))
 ```

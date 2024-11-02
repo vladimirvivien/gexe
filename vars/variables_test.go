@@ -2,77 +2,61 @@ package vars
 
 import (
 	"os"
+	"strings"
 	"testing"
 )
 
-func TestVariables_Envs(t *testing.T) {
+func TestParseVars(t *testing.T) {
 	tests := []struct {
-		name   string
-		envStr string
-		envs   map[string]string
+		name         string
+		vars         []string
+		expectedVars map[string]string
 	}{
 		{
-			name:   "single line single key",
-			envStr: "foo=bar",
-			envs:   map[string]string{"foo": "bar"},
+			name:         "single line single key",
+			vars:         []string{"foo=bar"},
+			expectedVars: map[string]string{"foo": "bar"},
 		},
 		{
-			name:   "single line multiple keys no spaces",
-			envStr: "foo=bar bazz=razz dazz=jazz",
-			envs:   map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz"},
+			name:         "multiple values",
+			vars:         []string{"foo=bar", "bazz=razz", "dazz=jazz"},
+			expectedVars: map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz"},
 		},
 		{
-			name:   "single line multiple keys with spaces",
-			envStr: "foo= bar bazz =razz dazz = jazz",
-			envs:   map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz"},
+			name:         "with var references",
+			vars:         []string{"foo=bar", `bazz=${foo}`, `dazz=jazz ${foo}`},
+			expectedVars: map[string]string{"foo": "bar", "bazz": "${foo}", "dazz": "jazz ${foo}"},
 		},
 		{
-			name:   "multiple lines single key",
-			envStr: "foo=bar\nbazz=razz",
-			envs:   map[string]string{"foo": "bar", "bazz": "razz"},
+			name:         "no value error",
+			vars:         []string{"foo=bar", "bazz", "dazz=jazz"},
+			expectedVars: map[string]string{"foo": "bar", "dazz": "jazz"},
 		},
 		{
-			name:   "multiple lines multiple keys no spaces",
-			envStr: "foo=bar bazz=razz\ndazz=jazz\nmadd=dadd sadd=fadd",
-			envs:   map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz", "madd": "dadd", "sadd": "fadd"},
+			name:         "unclosed quote error",
+			vars:         []string{"foo=bar", "bazz='booz", "dazz=jazz"},
+			expectedVars: map[string]string{"foo": "bar", "dazz": "jazz"},
 		},
 		{
-			name:   "multiple lines multiple keys with spaces",
-			envStr: "foo= bar bazz =razz\n dazz = jazz \n madd  =  dadd sadd= fadd",
-			envs:   map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz", "madd": "dadd", "sadd": "fadd"},
+			name:         "multiple items",
+			vars:         []string{"foo=bar bazz='booz'", "dazz=jazz"},
+			expectedVars: map[string]string{"foo": "bar bazz=", "dazz": "jazz"},
+		},
+		{
+			name:         "empty items",
+			vars:         nil,
+			expectedVars: map[string]string{},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			vars := New()
-			vars.Envs(test.envStr)
-			for key, val := range test.envs {
-				if os.Getenv(key) != val {
-					t.Errorf("unexpected env: %s = %s (needs %s)", key, val, os.Getenv(key))
+			kvPair := vars.parseVars(test.vars...)
+			for key, val := range test.expectedVars {
+				if strings.TrimSpace(kvPair[key]) != strings.TrimSpace(val) {
+					t.Errorf("unexpected var: %s=%s (want %s=%s)", key, val, key, kvPair[key])
 				}
-			}
-		})
-	}
-}
-
-func TestVariables_SetEnv(t *testing.T) {
-	tests := []struct {
-		name    string
-		envName string
-		envVal  string
-	}{
-		{
-			name:    "simple value",
-			envName: "foo",
-			envVal:  "bar",
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			New().SetEnv(test.envName, test.envVal)
-			if os.Getenv(test.envName) == "" {
-				t.Errorf("env %s not set", test.envName)
 			}
 		})
 	}
@@ -80,51 +64,62 @@ func TestVariables_SetEnv(t *testing.T) {
 
 func TestVariables_Vars(t *testing.T) {
 	tests := []struct {
-		name   string
-		varStr string
-		vars   map[string]string
+		name         string
+		vars         []string
+		expectedVars map[string]string
+		shouldFail   bool
 	}{
 		{
-			name:   "single line single key",
-			varStr: "foo=bar",
-			vars:   map[string]string{"foo": "bar"},
+			name:         "single line single key",
+			vars:         []string{"foo=bar"},
+			expectedVars: map[string]string{"foo": "bar"},
 		},
 		{
-			name:   "single line multiple keys no spaces",
-			varStr: "foo=bar bazz=razz dazz=jazz",
-			vars:   map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz"},
+			name:         "multiple values",
+			vars:         []string{"foo=bar", "bazz=razz", "dazz=jazz"},
+			expectedVars: map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz"},
 		},
 		{
-			name:   "single line multiple keys with spaces",
-			varStr: "foo= bar bazz =razz dazz = jazz",
-			vars:   map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz"},
+			name:         "with var references",
+			vars:         []string{"foo=bar", `bazz=${foo}`, `dazz="jazz ${foo}"`},
+			expectedVars: map[string]string{"foo": "bar", "bazz": "bar", "dazz": "jazz bar"},
 		},
 		{
-			name:   "multiple lines single key",
-			varStr: "foo=bar\nbazz=razz",
-			vars:   map[string]string{"foo": "bar", "bazz": "razz"},
+			name:         "no value error",
+			vars:         []string{"foo=bar", "bazz", "dazz=jazz"},
+			expectedVars: map[string]string{"foo": "bar", "dazz": "jazz"},
+			shouldFail:   true,
 		},
 		{
-			name:   "multiple lines multiple keys no spaces",
-			varStr: "foo=bar bazz=razz\ndazz=jazz\nmadd=dadd sadd=fadd",
-			vars:   map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz", "madd": "dadd", "sadd": "fadd"},
+			name:         "unclosed quote error",
+			vars:         []string{"foo=bar", "bazz='booz", "dazz=jazz"},
+			expectedVars: map[string]string{"foo": "bar", "dazz": "jazz"},
+			shouldFail:   true,
 		},
 		{
-			name:   "multiple lines multiple keys with spaces",
-			varStr: "foo= bar bazz =razz\n dazz = jazz \n madd  =  dadd sadd= fadd",
-			vars:   map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz", "madd": "dadd", "sadd": "fadd"},
+			name:         "multiple items",
+			vars:         []string{"foo=bar bazz='booz'", "dazz=jazz"},
+			expectedVars: map[string]string{"foo": "bar bazz=", "dazz": "jazz"},
+			shouldFail:   true,
+		},
+		{
+			name:         "empty items",
+			vars:         nil,
+			expectedVars: map[string]string{},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			vars := New()
-			vars.Vars(test.varStr)
-			for key, val := range test.vars {
+			vars.Vars(test.vars...)
+
+			for key, val := range test.expectedVars {
 				if v, ok := vars.vars[key]; !ok || v != val {
-					t.Errorf("unexpected var: %s = %s (needs %s)", key, val, v)
+					t.Errorf("unexpected var: %s=%s (needs %s=%s)", key, val, key, v)
 				}
 			}
+
 		})
 	}
 }
@@ -177,6 +172,79 @@ func TestVariables_UnsetVar(t *testing.T) {
 	}
 }
 
+func TestVariables_Envs(t *testing.T) {
+	tests := []struct {
+		name         string
+		envs         []string
+		expectedEnvs map[string]string
+	}{
+		{
+			name:         "single line single key",
+			envs:         []string{"foo=bar"},
+			expectedEnvs: map[string]string{"foo": "bar"},
+		},
+		{
+			name:         "multiple values",
+			envs:         []string{"foo=bar", "bazz=razz", "dazz=jazz"},
+			expectedEnvs: map[string]string{"foo": "bar", "bazz": "razz", "dazz": "jazz"},
+		},
+		{
+			name:         "no value error",
+			envs:         []string{"foo=bar", "bazz", "dazz=jazz"},
+			expectedEnvs: map[string]string{"foo": "bar", "dazz": "jazz"},
+		},
+		{
+			name:         "unclosed quote error",
+			envs:         []string{"foo=bar", "bazz='booz", "dazz=jazz"},
+			expectedEnvs: map[string]string{"foo": "bar", "dazz": "jazz"},
+		},
+		{
+			name:         "multiple items",
+			envs:         []string{"foo=bar bazz='booz'", "dazz=jazz"},
+			expectedEnvs: map[string]string{"foo": "bar bazz=", "dazz": "jazz"},
+		},
+		{
+			name:         "empty items",
+			envs:         nil,
+			expectedEnvs: map[string]string{},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			vars := New()
+			vars.Envs(test.envs...)
+			for key, val := range test.expectedEnvs {
+				if os.Getenv(key) != val {
+					t.Errorf("unexpected env: %s = %s (needs %s)", key, val, os.Getenv(key))
+				}
+			}
+		})
+	}
+}
+
+func TestVariables_SetEnv(t *testing.T) {
+	tests := []struct {
+		name    string
+		envName string
+		envVal  string
+	}{
+		{
+			name:    "simple value",
+			envName: "foo",
+			envVal:  "bar",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			New().SetEnv(test.envName, test.envVal)
+			if os.Getenv(test.envName) == "" {
+				t.Errorf("env %s not set", test.envName)
+			}
+		})
+	}
+}
+
 func TestVariables_Val(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -196,7 +264,7 @@ func TestVariables_Val(t *testing.T) {
 			name: "multiple values with Envs",
 			setup: func(vars *Variables) map[string]string {
 				values := map[string]string{"foo": "bar", "bar": "bazz"}
-				vars.Envs("foo=bar bar=bazz")
+				vars.Envs("foo=bar", "bar=bazz")
 				return values
 			},
 		},
@@ -214,7 +282,7 @@ func TestVariables_Val(t *testing.T) {
 			name: "multiple values with Vars",
 			setup: func(vars *Variables) map[string]string {
 				values := map[string]string{"foo": "bar", "bar": "bazz"}
-				vars.Vars("foo=bar bar=bazz")
+				vars.Vars("foo=bar", "bar=bazz")
 				return values
 			},
 		},
@@ -222,8 +290,8 @@ func TestVariables_Val(t *testing.T) {
 			name: "mixed Envs Vars",
 			setup: func(vars *Variables) map[string]string {
 				values := map[string]string{"foo": "bar", "batt": "bazz", "kazz": "jazz", "razz": "dazz"}
-				vars.Vars("foo=bar batt=bazz razz=dazz")
-				vars.Envs("kazz=jazz razz=wazz")
+				vars.Vars("foo=bar", "batt=bazz", "razz=dazz")
+				vars.Envs("kazz=jazz", "razz=wazz")
 				return values
 			},
 		},
@@ -275,7 +343,7 @@ func TestVariables_Eval(t *testing.T) {
 		{
 			name: "expansion multiple Vars",
 			setup: func(vars *Variables) *Variables {
-				return vars.Vars("foo=bar dood=daad")
+				return vars.Vars("foo=bar", "dood=daad")
 			},
 			str:      "is $foo a $dood?",
 			expected: "is bar a daad?",
@@ -299,7 +367,7 @@ func TestVariables_Eval(t *testing.T) {
 		{
 			name: "expansion multiple Envs",
 			setup: func(vars *Variables) *Variables {
-				return vars.Envs("foo=bar dood=daad")
+				return vars.Envs("foo=bar", "dood=daad")
 			},
 			str:      "is $foo a $dood?",
 			expected: "is bar a daad?",

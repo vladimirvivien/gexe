@@ -9,11 +9,11 @@ import (
 func TestEchoProg(t *testing.T) {
 	tests := []struct {
 		name string
-		exec func()
+		exec func(*testing.T)
 	}{
 		{
 			name: "test Info",
-			exec: func() {
+			exec: func(t *testing.T) {
 				if Prog().Pid() != os.Getpid() {
 					t.Errorf("expecting pid %d, got %d", os.Getpid(), Prog().Pid())
 				}
@@ -43,7 +43,7 @@ func TestEchoProg(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			test.exec()
+			test.exec(t)
 		})
 	}
 }

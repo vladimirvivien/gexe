@@ -32,18 +32,15 @@ func SetEnv(name, value string) *Echo {
 	return DefaultEcho.SetEnv(name, value)
 }
 
-// Vars declares session-scope variables using
-// a multi-line space-separated list:
+// Vars declares multiple session-scope variables using
+// string literals:
 //
-//	Envs("foo=bar platform=amd64")
-//
-// Session vars can be used in string values
-// using Eval("My foo=$foo").
+//	Envs("foo=bar", "platform=amd64", `"data="info ${platform}"`)
 //
 // Note that session vars are only available
 // for the running process.
-func Vars(val string) *Echo {
-	return DefaultEcho.Vars(val)
+func Vars(variables ...string) *Echo {
+	return DefaultEcho.Vars(variables...)
 }
 
 // SetVar declares a session variable.
@@ -162,14 +159,24 @@ func FileWrite(path string) *fs.FileWriter {
 	return DefaultEcho.FileWrite(path)
 }
 
-// GetUrl creates a *http.ResourceReader to retrieve HTTP content
-func GetUrl(url string) *http.ResourceReader {
-	return DefaultEcho.Get(url)
+// HttpGet starts an HTTP GET operation to retrieve resource at URL/path
+func HttpGet(url string, paths ...string) *http.ResourceReader {
+	return DefaultEcho.HttpGet(url, paths...)
 }
 
-// PostUrl creates a *http.ResourceWriter to write content to an HTTP server
-func PostUrl(url string) *http.ResourceWriter {
-	return DefaultEcho.Post(url)
+// Get is a convenient alias for HttpGet that retrieves specified resource at given URL/path
+func Get(url string, paths ...string) *http.Response {
+	return DefaultEcho.Get(url, paths...)
+}
+
+// HttpPost starts an HTTP POST operation to post resource to URL/path
+func HttpPost(url string, paths ...string) *http.ResourceWriter {
+	return DefaultEcho.HttpPost(url, paths...)
+}
+
+// Post is a convenient alias for HttpPost to post data at specified URL
+func Post(data []byte, url string) *http.Response {
+	return DefaultEcho.Post(data, url)
 }
 
 // Prog returns program information via *prog.Info

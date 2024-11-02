@@ -77,6 +77,9 @@ func (fw *FileWriter) Info() os.FileInfo {
 // String writes the provided str into the file. Any
 // error that occurs can be accessed with FileWriter.Err().
 func (fw *FileWriter) String(str string) *FileWriter {
+	if fw.err != nil {
+		return fw
+	}
 	file, err := os.OpenFile(fw.path, fw.flags, fw.mode)
 	if err != nil {
 		fw.err = err
@@ -96,6 +99,9 @@ func (fw *FileWriter) String(str string) *FileWriter {
 // Lines writes the slice of strings into the file.
 // Any error will be captured and returned via FileWriter.Err().
 func (fw *FileWriter) Lines(lines []string) *FileWriter {
+	if fw.err != nil {
+		return fw
+	}
 	file, err := os.OpenFile(fw.path, fw.flags, fw.mode)
 	if err != nil {
 		fw.err = err
@@ -125,6 +131,9 @@ func (fw *FileWriter) Lines(lines []string) *FileWriter {
 // Bytes writes the []bytre provided into the file.
 // Any error can be accessed using FileWriter.Err().
 func (fw *FileWriter) Bytes(data []byte) *FileWriter {
+	if fw.err != nil {
+		return fw
+	}
 	file, err := os.OpenFile(fw.path, fw.flags, fw.mode)
 	if err != nil {
 		fw.err = err
@@ -145,6 +154,9 @@ func (fw *FileWriter) Bytes(data []byte) *FileWriter {
 // writes them to the file. Any error will be captured
 // and returned by fw.Err().
 func (fw *FileWriter) From(r io.Reader) *FileWriter {
+	if fw.err != nil {
+		return fw
+	}
 	file, err := os.OpenFile(fw.path, fw.flags, fw.mode)
 	if err != nil {
 		fw.err = err

@@ -2,6 +2,7 @@ package exec
 
 import (
 	"fmt"
+	"io"
 	"sync"
 
 	"github.com/vladimirvivien/gexe/vars"
@@ -61,6 +62,7 @@ type PipedCommandResult struct {
 	procs    []*Proc
 	errProcs []*Proc
 	lastProc *Proc
+	err      error
 }
 
 // Procs return all executed processes in pipe
@@ -105,6 +107,9 @@ type CommandBuilder struct {
 	cmdPolicy CommandPolicy
 	procs     []*Proc
 	vars      *vars.Variables
+	err       error
+	stdout    io.Writer
+	stderr    io.Writer
 }
 
 // Commands creates a *CommandBuilder used to collect
@@ -141,6 +146,18 @@ func (cb *CommandBuilder) Add(cmds ...string) *CommandBuilder {
 	return cb
 }
 
+// WithStdout sets the standard output stream for the builder
+func (cb *CommandBuilder) WithStdout(out io.Writer) *CommandBuilder {
+	cb.stdout = out
+	return cb
+}
+
+// WithStderr sets the standard output err stream for the builder
+func (cb *CommandBuilder) WithStderr(err io.Writer) *CommandBuilder {
+	cb.stderr = err
+	return cb
+}
+
 // Run executes all commands successively and waits for all of the result. The result of each individual
 // command can be accessed from CommandResult.Procs[] after the execution completes. If policy == ExitOnErrPolicy, the
 // execution will stop on the first error encountered, otherwise it will continue. Processes with errors can be accessed
@@ -170,15 +187,24 @@ func (cb *CommandBuilder) Start() *CommandResult {
 	go func(builder *CommandBuilder, cr *CommandResult) {
 		defer close(cr.workChan)
 
-		// start with concurrently
+		// start with concurrently and wait for all procs to launch
 		if hasPolicy(builder.cmdPolicy, ConcurrentExecPolicy) {
 			var gate sync.WaitGroup
 			for _, proc := range builder.procs {
 				cr.mu.Lock()
 				cr.procs = append(cr.procs, proc)
 				cr.mu.Unlock()
-				proc.cmd.Stdout = proc.result
-				proc.cmd.Stderr = proc.result
+
+				// setup standard output/err
+				proc.cmd.Stdout = cb.stdout
+				if cb.stdout == nil {
+					proc.cmd.Stdout = proc.result
+				}
+
+				proc.cmd.Stderr = cb.stderr
+				if cb.stderr == nil {
+					proc.cmd.Stderr = proc.result
+				}
 
 				gate.Add(1)
 				go func(conProc *Proc, conResult *CommandResult) {
@@ -201,8 +227,17 @@ func (cb *CommandBuilder) Start() *CommandResult {
 			cr.mu.Lock()
 			cr.procs = append(cr.procs, proc)
 			cr.mu.Unlock()
-			proc.cmd.Stdout = proc.result
-			proc.cmd.Stderr = proc.result
+
+			// setup standard output/err
+			proc.cmd.Stdout = cb.stdout
+			if cb.stdout == nil {
+				proc.cmd.Stdout = proc.result
+			}
+
+			proc.cmd.Stderr = cb.stderr
+			if cb.stderr == nil {
+				proc.cmd.Stderr = proc.result
+			}
 
 			// start sequentially
 			if err := proc.Start().Err(); err != nil {
@@ -231,25 +266,40 @@ func (cb *CommandBuilder) Concurr() *CommandResult {
 
 // Pipe executes each command serially chaining the combinedOutput of previous command to the inputPipe of next command.
 func (cb *CommandBuilder) Pipe() *PipedCommandResult {
+	if cb.err != nil {
+		return &PipedCommandResult{err: cb.err}
+	}
+
 	var result PipedCommandResult
 	procLen := len(cb.procs)
 	if procLen == 0 {
-		return nil
+		return &PipedCommandResult{}
 	}
 
+	// wire last proc to combined output
 	last := procLen - 1
 	result.lastProc = cb.procs[last]
-	result.lastProc.cmd.Stdout = result.lastProc.result
-	result.lastProc.cmd.Stderr = result.lastProc.result
 
-	if procLen > 1 {
+	// setup standard output/err for last proc in pipe
+	result.lastProc.cmd.Stdout = cb.stdout
+	if cb.stdout == nil {
 		result.lastProc.cmd.Stdout = result.lastProc.result
-		// connect input/output between commands
-		for i, p := range cb.procs[:last] {
-			// link proc.Output to proc[next].Input
-			cb.procs[i+1].SetStdin(p.GetOutputPipe())
-			p.cmd.Stderr = p.result
+	}
+
+	result.lastProc.cmd.Stderr = cb.stderr
+	if cb.stderr == nil {
+		result.lastProc.cmd.Stderr = result.lastProc.result
+	}
+
+	result.lastProc.cmd.Stdout = result.lastProc.result
+	for i, p := range cb.procs[:last] {
+		pipeout, err := p.cmd.StdoutPipe()
+		if err != nil {
+			p.err = err
+			return &PipedCommandResult{err: err, errProcs: []*Proc{p}}
 		}
+
+		cb.procs[i+1].cmd.Stdin = pipeout
 	}
 
 	// start each process (but, not wait for result)
@@ -273,10 +323,18 @@ func (cb *CommandBuilder) Pipe() *PipedCommandResult {
 	return &result
 }
 
-func (cp *CommandBuilder) runCommand(proc *Proc) error {
-	// setup combined output for reach proc
-	proc.cmd.Stdout = proc.result
-	proc.cmd.Stderr = proc.result
+func (cb *CommandBuilder) runCommand(proc *Proc) error {
+	// setup standard out and standard err
+
+	proc.cmd.Stdout = cb.stdout
+	if cb.stdout == nil {
+		proc.cmd.Stdout = proc.result
+	}
+
+	proc.cmd.Stderr = cb.stderr
+	if cb.stderr == nil {
+		proc.cmd.Stderr = proc.result
+	}
 
 	if err := proc.Start().Err(); err != nil {
 		return err
