@@ -115,11 +115,13 @@ func TestVariables_Vars(t *testing.T) {
 			vars.Vars(test.vars...)
 
 			for key, val := range test.expectedVars {
-				if v, ok := vars.vars[key]; !ok || v != val {
+				// if v, ok := vars.vars[key]; !ok || v != val {
+				// 	t.Errorf("unexpected var: %s=%s (needs %s=%s)", key, val, key, v)
+				// }
+				if v, ok := vars.varStore.Load(key); !ok || v.(string) != val {
 					t.Errorf("unexpected var: %s=%s (needs %s=%s)", key, val, key, v)
 				}
 			}
-
 		})
 	}
 }
@@ -140,7 +142,10 @@ func TestVariables_SetVar(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			vars := New()
 			vars.SetVar(test.varName, test.varVal)
-			if v, ok := vars.vars[test.varName]; !ok || v != test.varVal {
+			// if v, ok := vars.vars[test.varName]; !ok || v != test.varVal {
+			// 	t.Errorf("var %s not set", test.varName)
+			// }
+			if v, ok := vars.varStore.Load(test.varName); !ok || v.(string) != test.varVal {
 				t.Errorf("var %s not set", test.varName)
 			}
 		})
@@ -165,7 +170,10 @@ func TestVariables_UnsetVar(t *testing.T) {
 			vars.SetVar(test.varName, test.varVal)
 			vars.UnsetVar(test.varName)
 
-			if _, ok := vars.vars[test.varName]; ok {
+			// if _, ok := vars.vars[test.varName]; ok {
+			// 	t.Errorf("var %s: still set after Unset", test.varName)
+			// }
+			if _, ok := vars.varStore.Load(test.varName); ok {
 				t.Errorf("var %s: still set after Unset", test.varName)
 			}
 		})
