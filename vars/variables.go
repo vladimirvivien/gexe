@@ -87,9 +87,10 @@ func (v *Variables) Vars(variables ...string) *Variables {
 
 // SetVar declares a gexe session variable.
 func (v *Variables) SetVar(name, value string) *Variables {
+	expVar := v.ExpandVar(value, v.Val)
 	v.Lock()
 	defer v.Unlock()
-	v.vars[name] = v.ExpandVar(value, v.Val)
+	v.vars[name] = expVar
 	return v
 }
 
@@ -104,8 +105,8 @@ func (v *Variables) UnsetVar(name string) *Variables {
 // Val searches for a gexe session variable with provided key, if not found
 // searches for an environment variable with that key.
 func (v *Variables) Val(key string) string {
-	//v.Lock()
-	//defer v.Unlock()
+	v.RLock()
+	defer v.RUnlock()
 	if val, ok := v.vars[key]; ok {
 		return val
 	}
