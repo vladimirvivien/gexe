@@ -15,15 +15,14 @@ var (
 // Variables stores a variable map that used for variable expansion
 // in parsed commands and other parsed strings.
 type Variables struct {
-	sync.RWMutex
+	varStore   sync.Map
 	err        error
-	vars       map[string]string
 	escapeChar rune
 }
 
 // New construction function to create a new Variables
 func New() *Variables {
-	return &Variables{vars: make(map[string]string), escapeChar: '\\'}
+	return &Variables{escapeChar: '\\'}
 }
 
 // WithEscapeChar sets the espacape char for the variable
@@ -86,29 +85,25 @@ func (v *Variables) Vars(variables ...string) *Variables {
 }
 
 // SetVar declares a gexe session variable.
-func (v *Variables) SetVar(name, value string) *Variables {
-	v.Lock()
-	defer v.Unlock()
-	v.vars[name] = v.ExpandVar(value, v.Val)
+func (v *Variables) SetVar(key, value string) *Variables {
+	expVar := v.ExpandVar(value, v.Val)
+	v.varStore.Store(key, expVar)
 	return v
 }
 
 // UnsetVar removes a previously set gexe session variable.
-func (v *Variables) UnsetVar(name string) *Variables {
-	v.Lock()
-	defer v.Unlock()
-	delete(v.vars, name)
+func (v *Variables) UnsetVar(key string) *Variables {
+	v.varStore.Delete(key)
 	return v
 }
 
 // Val searches for a gexe session variable with provided key, if not found
 // searches for an environment variable with that key.
 func (v *Variables) Val(key string) string {
-	//v.Lock()
-	//defer v.Unlock()
-	if val, ok := v.vars[key]; ok {
-		return val
+	if val, ok := v.varStore.Load(key); ok {
+		return val.(string)
 	}
+
 	return os.Getenv(key)
 }
 
