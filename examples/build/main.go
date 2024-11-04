@@ -15,7 +15,7 @@ func main() {
 		for _, opsys := range []string{"darwin", "linux"} {
 			gexe.SetVar("arch", arch).SetVar("os", opsys)
 			gexe.SetVar("binpath", fmt.Sprintf("build/%s/%s/mybinary", arch, opsys))
-			result := gexe.Envs("CGO_ENABLED=0 GOOS=$os GOARCH=$arch").Run("go build -o $binpath .")
+			result := gexe.Envs("CGO_ENABLED=0", "GOOS=$os", "GOARCH=$arch").Run("go build -o $binpath .")
 			if result != "" {
 				fmt.Printf("Build for %s/%s failed: %s\n", arch, opsys, result)
 				os.Exit(1)
