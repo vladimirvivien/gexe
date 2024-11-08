@@ -23,8 +23,8 @@ func Variables() *vars.Variables {
 //
 // Environment vars can be used in string values
 // using Eval("building for os=$GOOS")
-func Envs(val string) *Echo {
-	return DefaultEcho.Envs(val)
+func Envs(val ...string) *Echo {
+	return DefaultEcho.Envs(val...)
 }
 
 // SetEnv sets a process environment variable.

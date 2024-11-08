@@ -12,6 +12,12 @@ var (
 	varsRegex = regexp.MustCompile(`([A-Za-z0-9_]+)=["']?([^"']*?\$\{[A-Za-z0-9_\.\s]+\}[^"']*?|[^"']*)["']?`)
 )
 
+// varmap is used to store parsed variables
+type varmap struct {
+	key   string
+	value string
+}
+
 // Variables stores a variable map that used for variable expansion
 // in parsed commands and other parsed strings.
 type Variables struct {
@@ -48,9 +54,9 @@ func (v *Variables) Envs(variables ...string) *Variables {
 	if len(variables) == 0 {
 		return v
 	}
-	vars := v.parseVars(variables...)
-	for key, value := range vars {
-		v.SetEnv(key, value)
+	varmaps := v.parseVars(variables...)
+	for _, parsedVar := range varmaps {
+		v.SetEnv(parsedVar.key, parsedVar.value)
 	}
 	return v
 }
@@ -76,11 +82,11 @@ func (v *Variables) Vars(variables ...string) *Variables {
 		return v
 	}
 
-	vars := v.parseVars(variables...)
+	varmaps := v.parseVars(variables...)
 
 	// set variables
-	for key, value := range vars {
-		v.SetVar(key, value)
+	for _, parsedVar := range varmaps {
+		v.SetVar(parsedVar.key, parsedVar.value)
 	}
 	return v
 }
@@ -120,12 +126,12 @@ func (v *Variables) Eval(str string) string {
 	return v.ExpandVar(str, v.Val)
 }
 
-// parseVars parses each var line and maps each key to value into map[string]string result.
+// parseVars parses each var line and maps each key to value into []varmap result.
 // This method does not do variable expansion.
-func (v *Variables) parseVars(lines ...string) map[string]string {
-	result := make(map[string]string)
+func (v *Variables) parseVars(lines ...string) []varmap {
+	var result []varmap
 	if len(lines) == 0 {
-		return result
+		return []varmap{}
 	}
 
 	// each line should contain (<key>)=(<val>) pair
@@ -133,7 +139,7 @@ func (v *Variables) parseVars(lines ...string) map[string]string {
 	for _, line := range lines {
 		matches := varsRegex.FindStringSubmatch(line)
 		if len(matches) >= 3 {
-			result[matches[1]] = matches[2]
+			result = append(result, varmap{key: matches[1], value: matches[2]})
 		}
 	}
 	return result

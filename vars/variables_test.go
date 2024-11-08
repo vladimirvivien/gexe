@@ -35,7 +35,7 @@ func TestParseVars(t *testing.T) {
 		{
 			name:         "unclosed quote error",
 			vars:         []string{"foo=bar", "bazz='booz", "dazz=jazz"},
-			expectedVars: map[string]string{"foo": "bar", "dazz": "jazz"},
+			expectedVars: map[string]string{"foo": "bar", "bazz": "booz", "dazz": "jazz"},
 		},
 		{
 			name:         "multiple items",
@@ -52,10 +52,10 @@ func TestParseVars(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			vars := New()
-			kvPair := vars.parseVars(test.vars...)
-			for key, val := range test.expectedVars {
-				if strings.TrimSpace(kvPair[key]) != strings.TrimSpace(val) {
-					t.Errorf("unexpected var: %s=%s (want %s=%s)", key, val, key, kvPair[key])
+			varmaps := vars.parseVars(test.vars...)
+			for _, parsedVar := range varmaps {
+				if strings.TrimSpace(test.expectedVars[parsedVar.key]) != strings.TrimSpace(parsedVar.value) {
+					t.Errorf("unexpected var: %s=%s (want %s=%s)", parsedVar.key, parsedVar.value, parsedVar.key, test.expectedVars[parsedVar.key])
 				}
 			}
 		})
@@ -93,7 +93,7 @@ func TestVariables_Vars(t *testing.T) {
 		{
 			name:         "unclosed quote error",
 			vars:         []string{"foo=bar", "bazz='booz", "dazz=jazz"},
-			expectedVars: map[string]string{"foo": "bar", "dazz": "jazz"},
+			expectedVars: map[string]string{"foo": "bar", "bazz": "booz", "dazz": "jazz"},
 			shouldFail:   true,
 		},
 		{
@@ -116,7 +116,7 @@ func TestVariables_Vars(t *testing.T) {
 
 			for key, val := range test.expectedVars {
 				if v, ok := vars.vars[key]; !ok || v != val {
-					t.Errorf("unexpected var: %s=%s (needs %s=%s)", key, val, key, v)
+					t.Errorf("unexpected var: %s=%s (want %s=%s)", key, v, key, val)
 				}
 			}
 
