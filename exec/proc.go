@@ -443,15 +443,3 @@ func lookupGroupID(grpid string) (int, error) {
 
 	return 0, err
 }
-
-func getDefaultUserIDs() (int, int, error) {
-	usr, err := user.Current()
-	if err != nil {
-		return 0, 0, err
-	}
-
-	uid, _ := strconv.Atoi(usr.Uid)
-	gid, _ := strconv.Atoi(usr.Gid)
-
-	return uid, gid, nil
-}
