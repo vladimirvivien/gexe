@@ -6,7 +6,10 @@ import (
 	"io"
 	"os"
 	osexec "os/exec"
+	"os/user"
+	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/vladimirvivien/gexe/vars"
@@ -16,6 +19,8 @@ import (
 type Proc struct {
 	id         int
 	err        error
+	userid     *int
+	groupid    *int
 	state      *os.ProcessState
 	result     *bytes.Buffer
 	outputPipe io.ReadCloser
@@ -36,6 +41,7 @@ func NewProc(cmdStr string) *Proc {
 	}
 
 	command := osexec.Command(words[0], words[1:]...)
+
 	return &Proc{
 		cmd:    command,
 		result: new(bytes.Buffer),
@@ -132,6 +138,26 @@ func (p *Proc) Start() *Proc {
 		p.cmd.Stderr = p.result
 	}
 
+	// apply user id and user grp
+	var procCred *syscall.Credential
+	if p.userid != nil {
+		procCred = &syscall.Credential{
+			Uid: uint32(*p.userid),
+		}
+	}
+	if p.groupid != nil {
+		if procCred == nil {
+			procCred = new(syscall.Credential)
+		}
+		procCred.Uid = uint32(*p.groupid)
+	}
+	if procCred != nil {
+		if p.cmd.SysProcAttr == nil {
+			p.cmd.SysProcAttr = new(syscall.SysProcAttr)
+		}
+		p.cmd.SysProcAttr.Credential = procCred
+	}
+
 	if err := p.cmd.Start(); err != nil {
 		p.err = err
 		return p
@@ -153,6 +179,41 @@ func (p *Proc) SetVars(variables *vars.Variables) *Proc {
 // Command returns the os/exec.Cmd that started the process
 func (p *Proc) Command() *osexec.Cmd {
 	return p.cmd
+}
+
+// SetUserid looks up the user by a numerical id or
+// by a name to be used for the process when launched.
+func (p *Proc) SetUserid(user string) *Proc {
+	if p.err != nil {
+		return p
+	}
+	uid, err := lookupUserID(user)
+	if err != nil {
+		p.err = err
+		return p
+	}
+
+	p.userid = &uid
+
+	return p
+}
+
+// SetGroupid looks up the group by a numerical id or
+// by a name to be used for the process when launched.
+func (p *Proc) SetGroupid(grp string) *Proc {
+	if p.err != nil {
+		return p
+	}
+
+	gid, err := lookupGroupID(grp)
+	if err != nil {
+		p.err = err
+		return p
+	}
+
+	p.groupid = &gid
+
+	return p
 }
 
 // Peek attempts to read process state information
@@ -337,4 +398,48 @@ func (p *Proc) hasStarted() bool {
 // Parse parses the command string and returns its tokens
 func Parse(cmd string) ([]string, error) {
 	return parse(cmd)
+}
+
+func lookupUserID(userid string) (int, error) {
+	var uid int
+	var usr *user.User
+	var err error
+
+	// assume userid is a valid numerical user id
+	usr, err = user.LookupId(userid)
+	if err == nil {
+		uid, _ = strconv.Atoi(usr.Uid)
+		return uid, nil
+	}
+
+	// if not numercal id, lookup by username
+	usr, err = user.Lookup(userid)
+	if err == nil {
+		uid, _ = strconv.Atoi(usr.Uid)
+		return uid, nil
+	}
+
+	return 0, err
+}
+
+func lookupGroupID(grpid string) (int, error) {
+	var gid int
+	var grp *user.Group
+	var err error
+
+	// assume grpid is a valid numerical group id
+	grp, err = user.LookupGroupId(grpid)
+	if err == nil {
+		gid, _ = strconv.Atoi(grp.Gid)
+		return gid, nil
+	}
+
+	// if not numercal id, lookup by groupname
+	grp, err = user.LookupGroup(grpid)
+	if err == nil {
+		gid, _ = strconv.Atoi(grp.Gid)
+		return gid, nil
+	}
+
+	return 0, err
 }
