@@ -110,6 +110,7 @@ type CommandBuilder struct {
 	err       error
 	stdout    io.Writer
 	stderr    io.Writer
+	workDir   string
 }
 
 // Commands creates a *CommandBuilder used to collect
@@ -155,6 +156,14 @@ func (cb *CommandBuilder) WithStdout(out io.Writer) *CommandBuilder {
 // WithStderr sets the standard output err stream for the builder
 func (cb *CommandBuilder) WithStderr(err io.Writer) *CommandBuilder {
 	cb.stderr = err
+	return cb
+}
+
+// WithWorkDir sets the working directory for all defined commands
+func (cb *CommandBuilder) WithWorkDir(dir string) *CommandBuilder {
+	for _, proc := range cb.procs {
+		proc.cmd.Dir = dir
+	}
 	return cb
 }
 
