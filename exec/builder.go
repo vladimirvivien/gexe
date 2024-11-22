@@ -158,6 +158,14 @@ func (cb *CommandBuilder) WithStderr(err io.Writer) *CommandBuilder {
 	return cb
 }
 
+// WithWorkDir sets the working directory for all defined commands
+func (cb *CommandBuilder) WithWorkDir(dir string) *CommandBuilder {
+	for _, proc := range cb.procs {
+		proc.cmd.Dir = dir
+	}
+	return cb
+}
+
 // Run executes all commands successively and waits for all of the result. The result of each individual
 // command can be accessed from CommandResult.Procs[] after the execution completes. If policy == ExitOnErrPolicy, the
 // execution will stop on the first error encountered, otherwise it will continue. Processes with errors can be accessed

@@ -2,6 +2,8 @@ package exec
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -238,6 +240,30 @@ func TestNewProc(t *testing.T) {
 				}
 				if !p.IsSuccess() {
 					t.Fatal("Process should be success")
+				}
+			},
+		},
+		{
+			name:   "with working dir",
+			cmdStr: `touch testfile.txt`,
+			exec: func(t *testing.T, cmd string) {
+				dir, err := os.MkdirTemp("", "TESTDIR")
+				if err != nil {
+					t.Fatalf("Failed to create temp dir: %s", err)
+				}
+				defer os.RemoveAll(dir)
+
+				p := NewProc(cmd).SetWorkDir(dir)
+				if p.cmd.Dir != dir {
+					t.Fatalf("Not setting working dir")
+				}
+
+				run := p.Run()
+				if err := run.Err(); err != nil {
+					t.Fatalf("failed to run: %s", err)
+				}
+				if _, err := os.Stat(filepath.Join(dir, "testfile.txt")); err != nil {
+					t.Fatalf("Unexpected error looking for file: %s", err)
 				}
 			},
 		},

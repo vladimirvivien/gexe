@@ -216,6 +216,12 @@ func (p *Proc) SetGroupid(grp string) *Proc {
 	return p
 }
 
+// SetWorkDir sets the working directory for the command
+func (p *Proc) SetWorkDir(path string) *Proc {
+	p.cmd.Dir = path
+	return p
+}
+
 // Peek attempts to read process state information
 func (p *Proc) Peek() *Proc {
 	p.state = p.cmd.ProcessState
