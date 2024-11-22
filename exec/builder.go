@@ -110,7 +110,6 @@ type CommandBuilder struct {
 	err       error
 	stdout    io.Writer
 	stderr    io.Writer
-	workDir   string
 }
 
 // Commands creates a *CommandBuilder used to collect
