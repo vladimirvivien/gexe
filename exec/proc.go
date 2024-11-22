@@ -217,8 +217,8 @@ func (p *Proc) SetGroupid(grp string) *Proc {
 }
 
 // SetWorkDir sets the working directory for the command
-func (p *Proc) SetWorkDir(path string) * Proc {
-	p.cmd.Dir = path 
+func (p *Proc) SetWorkDir(path string) *Proc {
+	p.cmd.Dir = path
 	return p
 }
 
