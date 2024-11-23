@@ -174,14 +174,24 @@ func RmPath(path string) *fs.FSInfo {
 	return DefaultEcho.RmPath(path)
 }
 
+// FileRead uses context ctx to read file content from path
+func FileReadWithContext(ctx context.Context, path string) *fs.FileReader {
+	return DefaultEcho.FileReadWithContext(ctx, path)
+}
+
 // FileRead provides methods to read file content from path
 func FileRead(path string) *fs.FileReader {
-	return DefaultEcho.FileRead(path)
+	return DefaultEcho.FileReadWithContext(context.Background(), path)
+}
+
+// FileWriteWithContext uses context ctx to write file content to path
+func FileWriteWithContext(ctx context.Context, path string) *fs.FileWriter {
+	return DefaultEcho.FileWriteWithContext(ctx, path)
 }
 
 // FileWrite provides methods to write file content to path
 func FileWrite(path string) *fs.FileWriter {
-	return DefaultEcho.FileWrite(path)
+	return DefaultEcho.FileWriteWithContext(context.Background(), path)
 }
 
 // HttpGet starts an HTTP GET operation to retrieve resource at URL/path

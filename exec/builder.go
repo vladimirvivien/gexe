@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"sync"
@@ -112,24 +113,32 @@ type CommandBuilder struct {
 	stderr    io.Writer
 }
 
-// Commands creates a *CommandBuilder used to collect
-// command strings to be executed.
-func Commands(cmds ...string) *CommandBuilder {
+// CommandsWithContextVars creates a *CommandBuilder with the specified context and session variables.
+// The resulting *CommandBuilder is used to execute command strings.
+func CommandsWithContextVars(ctx context.Context, variables *vars.Variables, cmds ...string) *CommandBuilder {
 	cb := new(CommandBuilder)
-	cb.vars = &vars.Variables{}
+	cb.vars = variables
 	for _, cmd := range cmds {
-		cb.procs = append(cb.procs, NewProc(cmd))
+		cb.procs = append(cb.procs, NewProcWithContextVars(ctx, cmd, variables))
 	}
 	return cb
 }
 
+// CommandsWithContext creates a *CommandBuilder, with specified context, used to collect
+// command strings to be executed.
+func CommandsWithContext(ctx context.Context, cmds ...string) *CommandBuilder {
+	return CommandsWithContextVars(ctx, &vars.Variables{}, cmds...)
+}
+
+// Commands creates a *CommandBuilder used to collect
+// command strings to be executed.
+func Commands(cmds ...string) *CommandBuilder {
+	return CommandsWithContext(context.Background(), cmds...)
+}
+
 // CommandsWithVars creates a new CommandBuilder and sets session varialbes for it
 func CommandsWithVars(variables *vars.Variables, cmds ...string) *CommandBuilder {
-	cb := &CommandBuilder{vars: variables}
-	for _, cmd := range cmds {
-		cb.procs = append(cb.procs, NewProc(variables.Eval(cmd)))
-	}
-	return cb
+	return CommandsWithContextVars(context.Background(), variables, cmds...)
 }
 
 // WithPolicy sets one or more command policy mask values, i.e. (CmdOnErrContinue | CmdExecConcurrent)
