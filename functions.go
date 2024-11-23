@@ -1,6 +1,7 @@
 package gexe
 
 import (
+	"context"
 	"os"
 
 	"github.com/vladimirvivien/gexe/exec"
@@ -60,10 +61,22 @@ func Eval(str string) string {
 	return DefaultEcho.Eval(str)
 }
 
+// NewProcWithContext setups a new process with specified context and command cmdStr and returns immediately
+// without starting. Information about the running process is stored in *exec.Proc.
+func NewProcWithContext(ctx context.Context, cmdStr string) *exec.Proc {
+	return DefaultEcho.NewProcWithContext(ctx, cmdStr)
+}
+
 // NewProc setups a new process with specified command cmdStr and returns immediately
 // without starting. Information about the running process is stored in *exec.Proc.
 func NewProc(cmdStr string) *exec.Proc {
-	return DefaultEcho.NewProc(cmdStr)
+	return DefaultEcho.NewProcWithContext(context.Background(), cmdStr)
+}
+
+// StartProcWith executes the command in cmdStr with the specified contex and returns immediately
+// without waiting. Information about the running process is stored in *exec.Proc.
+func StartProcWithContext(ctx context.Context, cmdStr string) *exec.Proc {
+	return DefaultEcho.StartProcWithContext(ctx, cmdStr)
 }
 
 // StartProc executes the command in cmdStr and returns immediately
@@ -72,10 +85,22 @@ func StartProc(cmdStr string) *exec.Proc {
 	return DefaultEcho.StartProc(cmdStr)
 }
 
+// RunProcWithContext executes command in cmdStr, with specified ctx, and waits for the result.
+// It returns a *Proc with information about the executed process.
+func RunProcWithContext(ctx context.Context, cmdStr string) *exec.Proc {
+	return DefaultEcho.RunProc(cmdStr)
+}
+
 // RunProc executes command in cmdStr and waits for the result.
 // It returns a *Proc with information about the executed process.
 func RunProc(cmdStr string) *exec.Proc {
 	return DefaultEcho.RunProc(cmdStr)
+}
+
+// RunWithContext executes cmdStr, with specified context, and waits for completion.
+// It returns the result as a string.
+func RunWithContext(ctx context.Context, cmdStr string) string {
+	return DefaultEcho.RunWithContext(ctx, cmdStr)
 }
 
 // Run executes cmdStr, waits, and returns the result as a string.

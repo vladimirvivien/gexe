@@ -1,6 +1,7 @@
 package gexe
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/vladimirvivien/gexe/exec"
@@ -9,26 +10,49 @@ import (
 // NewProc setups a new process with specified command cmdStr and returns immediately
 // without starting. Use Proc.Wait to wait for exection and then retrieve process result.
 // Information about the running process is stored in *exec.Proc.
+func (e *Echo) NewProcWithContext(ctx context.Context, cmdStr string) *exec.Proc {
+	return exec.NewProcWithContextVars(ctx, cmdStr, e.vars)
+}
+
+// NewProc a convenient function that calls NewProcWithContext with a default contet.
 func (e *Echo) NewProc(cmdStr string) *exec.Proc {
-	return exec.NewProcWithVars(cmdStr, e.vars)
+	return exec.NewProcWithContextVars(context.Background(), cmdStr, e.vars)
+}
+
+// StartProc executes the command in cmdStr, with the specified context, and returns immediately
+// without waiting. Use Proc.Wait to wait for exection and then retrieve process result.
+// Information about the running process is stored in *Proc.
+func (e *Echo) StartProcWithContext(ctx context.Context, cmdStr string) *exec.Proc {
+	return exec.StartProcWithContextVars(ctx, cmdStr, e.vars)
 }
 
 // StartProc executes the command in cmdStr and returns immediately
 // without waiting. Use Proc.Wait to wait for exection and then retrieve process result.
 // Information about the running process is stored in *Proc.
 func (e *Echo) StartProc(cmdStr string) *exec.Proc {
-	return exec.StartProcWithVars(cmdStr, e.vars)
+	return exec.StartProcWithContextVars(context.Background(), cmdStr, e.vars)
+}
+
+// RunProcWithContext executes command in cmdStr, with given context, and waits for the result.
+// It returns a *Proc with information about the executed process.
+func (e *Echo) RunProcWithContext(ctx context.Context, cmdStr string) *exec.Proc {
+	return exec.RunProcWithContextVars(ctx, cmdStr, e.vars)
 }
 
 // RunProc executes command in cmdStr and waits for the result.
 // It returns a *Proc with information about the executed process.
 func (e *Echo) RunProc(cmdStr string) *exec.Proc {
-	return exec.RunProcWithVars(cmdStr, e.vars)
+	return exec.RunProcWithContextVars(context.Background(), cmdStr, e.vars)
+}
+
+// Run executes cmdStr, with given context, and returns the result as a string.
+func (e *Echo) RunWithContext(ctx context.Context, cmdStr string) string {
+	return exec.RunWithContextVars(ctx, cmdStr, e.vars)
 }
 
 // Run executes cmdStr, waits, and returns the result as a string.
 func (e *Echo) Run(cmdStr string) string {
-	return exec.RunWithVars(cmdStr, e.vars)
+	return exec.RunWithContextVars(context.Background(), cmdStr, e.vars)
 }
 
 // Runout executes command cmdStr and prints out the result

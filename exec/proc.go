@@ -65,6 +65,13 @@ func NewProcWithVars(cmdStr string, variables *vars.Variables) *Proc {
 	return p
 }
 
+// NewProcWithContextVars is a convenient function to create new Proc with context and variables.
+func NewProcWithContextVars(ctx context.Context, cmdStr string, variables *vars.Variables) *Proc {
+	proc := NewProcWithContext(ctx, variables.Eval(cmdStr))
+	proc.vars = variables
+	return proc
+}
+
 // StartProcWithContext creates and starts an OS process (with combined stdout/stderr) using the specified context.
 // The function does not wait for the process to complete and must be followed by proc.Wait() to wait for process completion.
 // Then, call proc.Out() or proc.Result() to access the process' result.
@@ -87,6 +94,13 @@ func StartProc(cmdStr string) *Proc {
 // StartProcWithVars sets session variables and calls StartProc to create and start a process.
 func StartProcWithVars(cmdStr string, variables *vars.Variables) *Proc {
 	proc := StartProcWithContext(context.Background(), variables.Eval(cmdStr))
+	proc.vars = variables
+	return proc
+}
+
+// StartProcWithContextVars is a convenient function that creates and starts a process with a context and variables.
+func StartProcWithContextVars(ctx context.Context, cmdStr string, variables *vars.Variables) *Proc {
+	proc := StartProcWithContext(ctx, variables.Eval(cmdStr))
 	proc.vars = variables
 	return proc
 }
@@ -119,6 +133,13 @@ func RunProcWithVars(cmdStr string, variables *vars.Variables) *Proc {
 	return proc
 }
 
+// RunProcWithContextVars runs a process with a context and session variables
+func RunProcWithContextVars(ctx context.Context, cmdStr string, variables *vars.Variables) *Proc {
+	proc := RunProcWithContext(ctx, variables.Eval(cmdStr))
+	proc.vars = variables
+	return proc
+}
+
 // RunWithContext creates and runs a new process using the specified context.
 // It waits for its result (combined stdin,stderr) and makes it availble as a string value.
 // This is equivalent to calling Proc.RunProcWithContext() followed by Proc.Result().
@@ -134,6 +155,11 @@ func Run(cmdStr string) (result string) {
 // RunWithVars creates and runs a new process with a specified session variables.
 func RunWithVars(cmdStr string, variables *vars.Variables) string {
 	return RunProcWithVars(cmdStr, variables).Result()
+}
+
+// RunWithContextVars creates and runs a new process with a specified context and session variables.
+func RunWithContextVars(ctx context.Context, cmdStr string, variables *vars.Variables) string {
+	return RunProcWithContextVars(ctx, cmdStr, variables).Result()
 }
 
 // Start starts the associated command as an OS process and does not wait for its result.
