@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
 	"net/url"
@@ -19,18 +20,33 @@ type ResourceWriter struct {
 	headers http.Header
 	data    io.Reader
 	vars    *vars.Variables
+	ctx     context.Context
+}
+
+// PostWithContextVars uses the specified context ctx and session variable to
+// start an HTTP "POST" operation
+func PostWithContextVars(ctx context.Context, resource string, variables *vars.Variables) *ResourceWriter {
+	if variables == nil {
+		variables = &vars.Variables{}
+	}
+
+	return &ResourceWriter{
+		ctx:     ctx,
+		url:     variables.Eval(resource),
+		client:  &http.Client{},
+		headers: make(http.Header),
+		vars:    variables,
+	}
+}
+
+// PostWithVars uses session variables to start an HTTP "POST" operation
+func PostWithVars(resource string, variables *vars.Variables) *ResourceWriter {
+	return PostWithContextVars(context.Background(), resource, variables)
 }
 
 // Post starts an HTTP "POST" operation using the provided URL.
 func Post(resource string) *ResourceWriter {
-	return &ResourceWriter{url: resource, client: &http.Client{}, headers: make(http.Header), vars: &vars.Variables{}}
-}
-
-// PostWithVars starts an HTTP "POST" operation and sets the provided gexe session variables
-func PostWithVars(resource string, variables *vars.Variables) *ResourceWriter {
-	w := Post(variables.Eval(resource))
-	w.vars = variables
-	return w
+	return PostWithContextVars(context.Background(), resource, &vars.Variables{})
 }
 
 // SetVars sets gexe session variables to be used by the post operation
@@ -42,6 +58,12 @@ func (w *ResourceWriter) SetVars(variables *vars.Variables) *ResourceWriter {
 // WithTimeout sets the HTTP client's timeout used for the post operation
 func (w *ResourceWriter) WithTimeout(to time.Duration) *ResourceWriter {
 	w.client.Timeout = to
+	return w
+}
+
+// WithContext sets the context to be used for the HTTP request
+func (w *ResourceWriter) WithContext(ctx context.Context) *ResourceWriter {
+	w.ctx = ctx
 	return w
 }
 
@@ -98,7 +120,7 @@ func (w *ResourceWriter) FormData(val map[string][]string) *ResourceWriter {
 // Do is a terminal method that actually posts the HTTP request to the server.
 // It returns a gexe/http/*Response instance that can be used to access post result.
 func (w *ResourceWriter) Do() *Response {
-	req, err := http.NewRequest("POST", w.url, w.data)
+	req, err := http.NewRequestWithContext(w.ctx, "POST", w.url, w.data)
 	if err != nil {
 		return &Response{err: err}
 	}
