@@ -2,6 +2,7 @@ package exec
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -31,36 +32,51 @@ type Proc struct {
 	vars       *vars.Variables
 }
 
-// NewProc sets up command string to be started as an OS process, however
-// does not start the process. The process must be started using a subsequent call to
+// NewProcWithContext sets up command string to be started as an OS process using the specified context.
+// However, it does not start the process. The process must be started using a subsequent call to
 // Proc.StartXXX() or Proc.RunXXX() method.
-func NewProc(cmdStr string) *Proc {
+func NewProcWithContext(ctx context.Context, cmdStr string) *Proc {
 	words, err := parse(cmdStr)
 	if err != nil {
 		return &Proc{err: err}
 	}
 
-	command := osexec.Command(words[0], words[1:]...)
+	command := osexec.CommandContext(ctx, words[0], words[1:]...)
 
 	return &Proc{
 		cmd:    command,
 		result: new(bytes.Buffer),
 		vars:   &vars.Variables{},
 	}
+
+}
+
+// NewProc sets up command string to be started as an OS process, however
+// does not start the process. The process must be started using a subsequent call to
+// Proc.StartXXX() or Proc.RunXXX() method.
+func NewProc(cmdStr string) *Proc {
+	return NewProcWithContext(context.Background(), cmdStr)
 }
 
 // NewProcWithVars sets up new command string and session variables for a new proc
 func NewProcWithVars(cmdStr string, variables *vars.Variables) *Proc {
-	p := NewProc(variables.Eval(cmdStr))
+	p := NewProcWithContext(context.Background(), variables.Eval(cmdStr))
 	p.vars = variables
 	return p
 }
 
-// StartProc creates and starts an OS process (with combined stdout/stderr) and does not wait for
-// it to complete. You must follow this with proc.Wait() to wait for result directly. Then,
-// call proc.Out() or proc.Result() to access the process' result.
-func StartProc(cmdStr string) *Proc {
-	proc := NewProc(cmdStr)
+// NewProcWithContextVars is a convenient function to create new Proc with context and variables.
+func NewProcWithContextVars(ctx context.Context, cmdStr string, variables *vars.Variables) *Proc {
+	proc := NewProcWithContext(ctx, variables.Eval(cmdStr))
+	proc.vars = variables
+	return proc
+}
+
+// StartProcWithContext creates and starts an OS process (with combined stdout/stderr) using the specified context.
+// The function does not wait for the process to complete and must be followed by proc.Wait() to wait for process completion.
+// Then, call proc.Out() or proc.Result() to access the process' result.
+func StartProcWithContext(ctx context.Context, cmdStr string) *Proc {
+	proc := NewProcWithContext(ctx, cmdStr)
 	proc.cmd.Stdout = proc.result
 	proc.cmd.Stderr = proc.result
 
@@ -70,46 +86,80 @@ func StartProc(cmdStr string) *Proc {
 	return proc.Start()
 }
 
+// StartProc creates and starts an OS process using StartProcWithContext using a default context.
+func StartProc(cmdStr string) *Proc {
+	return StartProcWithContext(context.Background(), cmdStr)
+}
+
 // StartProcWithVars sets session variables and calls StartProc to create and start a process.
 func StartProcWithVars(cmdStr string, variables *vars.Variables) *Proc {
-	proc := StartProc(variables.Eval(cmdStr))
+	proc := StartProcWithContext(context.Background(), variables.Eval(cmdStr))
 	proc.vars = variables
 	return proc
 }
 
-// RunProc creates, starts, and wait for a new process (with combined stdout/stderr) to complete.
-// Use Proc.Out() to access the command's output as an io.Reader (combining stdout and stderr).
-// Or, use Proc.Result() to access the commands output as a string.
-func RunProc(cmdStr string) *Proc {
-	proc := StartProc(cmdStr)
-	if procErr := proc.Err(); procErr != nil {
-		proc.err = procErr
+// StartProcWithContextVars is a convenient function that creates and starts a process with a context and variables.
+func StartProcWithContextVars(ctx context.Context, cmdStr string, variables *vars.Variables) *Proc {
+	proc := StartProcWithContext(ctx, variables.Eval(cmdStr))
+	proc.vars = variables
+	return proc
+}
+
+// RunProcWithContext creates, starts, and runs an OS process using the specified context.
+// It then waits for a new process (with combined stdout/stderr) to complete.
+// Use Proc.Out() to access the command's output as an io.Reader, or use Proc.Result()
+// to access the commands output as a string.
+func RunProcWithContext(ctx context.Context, cmdStr string) *Proc {
+	proc := StartProcWithContext(ctx, cmdStr)
+	if err := proc.Err(); err != nil {
 		return proc
 	}
 	if err := proc.Wait().Err(); err != nil {
 		proc.err = err
 		return proc
 	}
-
 	return proc
+}
+
+// RunProc creates, starts, and runs for a new process using RunProcWithContext with a default context.
+func RunProc(cmdStr string) *Proc {
+	return RunProcWithContext(context.Background(), cmdStr)
 }
 
 // RunProcWithVars sets session variables and calls RunProc
 func RunProcWithVars(cmdStr string, variables *vars.Variables) *Proc {
-	proc := RunProc(variables.Eval(cmdStr))
+	proc := RunProcWithContext(context.Background(), variables.Eval(cmdStr))
 	proc.vars = variables
 	return proc
 }
 
-// Run creates and runs a process and waits for its result (combined stdin,stderr) returned as a string value.
-// This is equivalent to calling Proc.RunProc() followed by Proc.Result().
-func Run(cmdStr string) (result string) {
-	return RunProc(cmdStr).Result()
+// RunProcWithContextVars runs a process with a context and session variables
+func RunProcWithContextVars(ctx context.Context, cmdStr string, variables *vars.Variables) *Proc {
+	proc := RunProcWithContext(ctx, variables.Eval(cmdStr))
+	proc.vars = variables
+	return proc
 }
 
-// RunWithVars sets session variables and call Run
+// RunWithContext creates and runs a new process using the specified context.
+// It waits for its result (combined stdin,stderr) and makes it availble as a string value.
+// This is equivalent to calling Proc.RunProcWithContext() followed by Proc.Result().
+func RunWithContext(ctx context.Context, cmdStr string) string {
+	return RunProcWithContext(ctx, cmdStr).Result()
+}
+
+// Runs is a convenient shortcut to calling RunWithContext with a default context
+func Run(cmdStr string) (result string) {
+	return RunProcWithContext(context.Background(), cmdStr).Result()
+}
+
+// RunWithVars creates and runs a new process with a specified session variables.
 func RunWithVars(cmdStr string, variables *vars.Variables) string {
 	return RunProcWithVars(cmdStr, variables).Result()
+}
+
+// RunWithContextVars creates and runs a new process with a specified context and session variables.
+func RunWithContextVars(ctx context.Context, cmdStr string, variables *vars.Variables) string {
+	return RunProcWithContextVars(ctx, cmdStr, variables).Result()
 }
 
 // Start starts the associated command as an OS process and does not wait for its result.
