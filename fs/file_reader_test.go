@@ -3,6 +3,7 @@ package fs
 import (
 	"bytes"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -19,7 +20,7 @@ func TestFileReader(t *testing.T) {
 	}{
 		{
 			name: "read.string",
-			file: testFile{path: "/tmp/echo_test_read_string.txt", content: "Hello from gexe"},
+			file: testFile{path: filepath.Join(t.TempDir(), "echo_test_read_string.txt"), content: "Hello from gexe"},
 			test: func(t *testing.T, file testFile) {
 				fr := Read(file.path)
 				if fr.Err() != nil {
@@ -33,7 +34,7 @@ func TestFileReader(t *testing.T) {
 		},
 		{
 			name: "read.lines",
-			file: testFile{path: "/tmp/echo_test_read_lines.txt", content: "Hello from\ngexe\ngexe\ngexe"},
+			file: testFile{path: filepath.Join(t.TempDir(), "echo_test_read_lines.txt"), content: "Hello from\ngexe\ngexe\ngexe"},
 			test: func(t *testing.T, file testFile) {
 				fr := Read(file.path)
 				if fr.Err() != nil {
@@ -54,7 +55,7 @@ func TestFileReader(t *testing.T) {
 		},
 		{
 			name: "read.bytes",
-			file: testFile{path: "/tmp/echo_test_read_bytes.txt", content: "Hello from gexe"},
+			file: testFile{path: filepath.Join(t.TempDir(), "echo_test_read_bytes.txt"), content: "Hello from gexe"},
 			test: func(t *testing.T, file testFile) {
 				fr := Read(file.path)
 				if fr.Err() != nil {
@@ -68,7 +69,7 @@ func TestFileReader(t *testing.T) {
 		},
 		{
 			name: "read.writeTo",
-			file: testFile{path: "/tmp/echo_test_read_writeTo.txt", content: "Hello from gexe"},
+			file: testFile{path: filepath.Join(t.TempDir(), "echo_test_read_writeTo.txt"), content: "Hello from gexe"},
 			test: func(t *testing.T, file testFile) {
 				buf := new(bytes.Buffer)
 				fr := Read(file.path).Into(buf)

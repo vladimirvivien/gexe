@@ -2,11 +2,12 @@ package gexe
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 )
 
 func TestFileReadWrite(t *testing.T) {
-	path := "/tmp/test_writer_reader.txt"
+	path := filepath.Join(t.TempDir(), "test_writer_reader.txt")
 	content := "Hello from file"
 	defer os.RemoveAll(path)
 

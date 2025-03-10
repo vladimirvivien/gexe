@@ -1,4 +1,4 @@
-//go:build !windows
+//go:build windows
 
 package gexe
 
@@ -15,7 +15,7 @@ func TestEchoRun(t *testing.T) {
 	}{
 		{
 			name:   "start proc",
-			cmdStr: `echo "HELLO WORLD!"`,
+			cmdStr: `powershell.exe -Command "Write-Output 'HELLO WORLD!'"`,
 			exec: func(t *testing.T, cmd string) {
 				p := DefaultEcho.StartProc(cmd)
 				if p.Err() != nil {
@@ -48,7 +48,7 @@ func TestEchoRun(t *testing.T) {
 		},
 		{
 			name:   "start proc/long-running",
-			cmdStr: `/bin/sh -c "for i in {1..3}; do echo 'HELLO WORLD!\$i'; sleep 0.2; done"`,
+			cmdStr: `powershell.exe -Command "Write-Host 'HELLO WORLD!'; Start-Sleep -Milliseconds 600"`,
 			exec: func(t *testing.T, cmd string) {
 				p := DefaultEcho.StartProc(cmd)
 				if p.Err() != nil {
@@ -66,7 +66,7 @@ func TestEchoRun(t *testing.T) {
 		},
 		{
 			name:   "run proc",
-			cmdStr: `echo "HELLO WORLD!"`,
+			cmdStr: `powershell.exe -Command "Write-Output 'HELLO WORLD!'"`,
 			exec: func(t *testing.T, cmd string) {
 				p := DefaultEcho.RunProc(cmd)
 				if p.ExitCode() != 0 {
@@ -82,7 +82,7 @@ func TestEchoRun(t *testing.T) {
 		},
 		{
 			name:   "simple run",
-			cmdStr: `echo "HELLO WORLD!"`,
+			cmdStr: `powershell.exe -Command "Write-Output 'HELLO WORLD!'"`,
 			exec: func(t *testing.T, cmd string) {
 				result := DefaultEcho.Run(cmd)
 				if result != "HELLO WORLD!" {
@@ -93,7 +93,7 @@ func TestEchoRun(t *testing.T) {
 
 		{
 			name:   "simple with expansion",
-			cmdStr: "echo $MSG",
+			cmdStr: `powershell.exe -Command "Write-Output '$MSG'"`,
 			exec: func(t *testing.T, cmd string) {
 				DefaultEcho.Variables().Vars("MSG=Hello World")
 				result := DefaultEcho.Run(cmd)
