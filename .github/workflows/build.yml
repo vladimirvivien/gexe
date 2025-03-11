@@ -21,8 +21,7 @@ jobs:
           - '1.23'
         os:
           - ubuntu-latest
-          # TODO: add support for windows then we can remove the comment
-          # - windows-latest
+          - windows-latest
 
     permissions:
       contents: read

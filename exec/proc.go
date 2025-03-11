@@ -10,7 +10,6 @@ import (
 	"os/user"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/vladimirvivien/gexe/vars"
@@ -188,25 +187,7 @@ func (p *Proc) Start() *Proc {
 		p.cmd.Stderr = p.result
 	}
 
-	// apply user id and user grp
-	var procCred *syscall.Credential
-	if p.userid != nil {
-		procCred = &syscall.Credential{
-			Uid: uint32(*p.userid),
-		}
-	}
-	if p.groupid != nil {
-		if procCred == nil {
-			procCred = new(syscall.Credential)
-		}
-		procCred.Uid = uint32(*p.groupid)
-	}
-	if procCred != nil {
-		if p.cmd.SysProcAttr == nil {
-			p.cmd.SysProcAttr = new(syscall.SysProcAttr)
-		}
-		p.cmd.SysProcAttr.Credential = procCred
-	}
+	p.setUser()
 
 	if err := p.cmd.Start(); err != nil {
 		p.err = err
