@@ -2,6 +2,7 @@ package fs
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -30,7 +31,7 @@ func TestPathMethods(t *testing.T) {
 		},
 		{
 			name: "path exist",
-			path: "/tmp/myfile.txt",
+			path: filepath.Join(t.TempDir(), "myfile.txt"),
 			test: func(t *testing.T, path string) {
 				if err := Write(path).String("hello").Err(); err != nil {
 					t.Fatalf("unable to write test file: %s", err)
@@ -46,7 +47,7 @@ func TestPathMethods(t *testing.T) {
 		},
 		{
 			name: "make dir",
-			path: "/tmp/mydir",
+			path: filepath.Join(t.TempDir(), "mydir"),
 			test: func(t *testing.T, path string) {
 				p := Path(path).MkDir(0644)
 				if p.Err() != nil {
@@ -61,7 +62,7 @@ func TestPathMethods(t *testing.T) {
 		},
 		{
 			name: "remove file",
-			path: "/tmp/myfile.txt",
+			path: filepath.Join(t.TempDir(), "myfile.txt"),
 			test: func(t *testing.T, path string) {
 				if err := Write(path).String("hello").Err(); err != nil {
 					t.Fatalf("unable to write test file: %s", err)
@@ -80,7 +81,7 @@ func TestPathMethods(t *testing.T) {
 		},
 		{
 			name: "count dir",
-			path: "/tmp/mydir",
+			path: filepath.Join(t.TempDir(), "mydir"),
 			test: func(t *testing.T, path string) {
 				if err := os.Mkdir(path, 0766); err != nil {
 					t.Fatalf("failed to create dir for test: %s", err)
