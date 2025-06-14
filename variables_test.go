@@ -7,18 +7,18 @@ import (
 func TestEchoVar(t *testing.T) {
 	tests := []struct {
 		name string
-		echo func() *Echo
-		test func(*testing.T, *Echo)
+		echo func() *Session
+		test func(*testing.T, *Session)
 	}{
 		{
 			name: "SetVar",
-			echo: func() *Echo {
+			echo: func() *Session {
 				e := New()
 				e.SetVar("foo", "bar")
 				e.SetVar("fuzz", "buzz")
 				return e
 			},
-			test: func(t *testing.T, e *Echo) {
+			test: func(t *testing.T, e *Session) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -29,12 +29,12 @@ func TestEchoVar(t *testing.T) {
 		},
 		{
 			name: "Vars multiple",
-			echo: func() *Echo {
+			echo: func() *Session {
 				e := New()
 				e.Vars("foo=bar", "fuzz=buzz")
 				return e
 			},
-			test: func(t *testing.T, e *Echo) {
+			test: func(t *testing.T, e *Session) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -45,12 +45,12 @@ func TestEchoVar(t *testing.T) {
 		},
 		{
 			name: "Vars with quoted",
-			echo: func() *Echo {
+			echo: func() *Session {
 				e := New()
 				e.Vars("bazz=azz", `foo="bar"`, `fuzz='buzz'`)
 				return e
 			},
-			test: func(t *testing.T, e *Echo) {
+			test: func(t *testing.T, e *Session) {
 				if e.Val("bazz") != "azz" {
 					t.Fatal("unexpected value:", e.Val("bazz"))
 				}
@@ -64,13 +64,13 @@ func TestEchoVar(t *testing.T) {
 		},
 		{
 			name: "Vars with expansion",
-			echo: func() *Echo {
+			echo: func() *Session {
 				e := New()
 				e.SetVar("bazz", "dazz")
 				e.Vars("foo=${bazz}", "fuzz=buzz")
 				return e
 			},
-			test: func(t *testing.T, e *Echo) {
+			test: func(t *testing.T, e *Session) {
 				if e.Val("foo") != "dazz" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -81,13 +81,13 @@ func TestEchoVar(t *testing.T) {
 		},
 		{
 			name: "Vars overwrite Env",
-			echo: func() *Echo {
+			echo: func() *Session {
 				e := New()
 				e.SetVar("foo", "bar")
 				e.SetEnv("foo", "fuzz")
 				return e
 			},
-			test: func(t *testing.T, e *Echo) {
+			test: func(t *testing.T, e *Session) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -105,18 +105,18 @@ func TestEchoVar(t *testing.T) {
 func TestEchoEnv(t *testing.T) {
 	tests := []struct {
 		name string
-		echo func() *Echo
-		test func(*Echo)
+		echo func() *Session
+		test func(*Session)
 	}{
 		{
 			name: "SetEnv",
-			echo: func() *Echo {
+			echo: func() *Session {
 				e := New()
 				e.SetEnv("foo", "bar")
 				e.SetEnv("fuzz", "buzz")
 				return e
 			},
-			test: func(e *Echo) {
+			test: func(e *Session) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -127,12 +127,12 @@ func TestEchoEnv(t *testing.T) {
 		},
 		{
 			name: "Envs",
-			echo: func() *Echo {
+			echo: func() *Session {
 				e := New()
 				e.Envs("foo=bar", "fuzz=buzz")
 				return e
 			},
-			test: func(e *Echo) {
+			test: func(e *Session) {
 				if e.Val("foo") != "bar" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -143,12 +143,12 @@ func TestEchoEnv(t *testing.T) {
 		},
 		{
 			name: "Envs quoated",
-			echo: func() *Echo {
+			echo: func() *Session {
 				e := New()
 				e.Envs("bazz=azz", `foo="bar"`, `fuzz='buzz'`)
 				return e
 			},
-			test: func(e *Echo) {
+			test: func(e *Session) {
 				if e.Val("bazz") != "azz" {
 					t.Fatal("unexpected value:", e.Val("bazz"))
 				}
@@ -162,13 +162,13 @@ func TestEchoEnv(t *testing.T) {
 		},
 		{
 			name: "Env with expansion",
-			echo: func() *Echo {
+			echo: func() *Session {
 				e := New()
 				e.SetVar("bazz", "dazz")
 				e.Envs(`foo=${bazz}`, `fuzz=buzz`)
 				return e
 			},
-			test: func(e *Echo) {
+			test: func(e *Session) {
 				if e.Val("foo") != "dazz" && e.Val("fuzz") != "buzz" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}
@@ -179,13 +179,13 @@ func TestEchoEnv(t *testing.T) {
 		},
 		{
 			name: "Env overwrite Vars",
-			echo: func() *Echo {
+			echo: func() *Session {
 				e := New()
 				e.SetVar("foo", "fuzz")
 				e.SetEnv("foo", "bar")
 				return e
 			},
-			test: func(e *Echo) {
+			test: func(e *Session) {
 				if e.Val("foo") != "fuzz" {
 					t.Fatal("unexpected value:", e.Val("foo"))
 				}

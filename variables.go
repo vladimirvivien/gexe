@@ -5,7 +5,7 @@ import (
 )
 
 // Variables returns the variable mapping for echo session e
-func (e *Echo) Variables() *vars.Variables {
+func (e *Session) Variables() *vars.Variables {
 	return e.vars
 }
 
@@ -16,14 +16,14 @@ func (e *Echo) Variables() *vars.Variables {
 //
 // Environment vars can be used in string values
 // using Eval("building for os=$GOOS")
-func (e *Echo) Envs(variables ...string) *Echo {
+func (e *Session) Envs(variables ...string) *Session {
 	vars := e.vars.Envs(variables...)
 	e.err = vars.Err()
 	return e
 }
 
 // SetEnv sets a global process environment variable.
-func (e *Echo) SetEnv(name, value string) *Echo {
+func (e *Session) SetEnv(name, value string) *Session {
 	vars := e.vars.SetEnv(name, value)
 	e.err = vars.Err()
 	return e
@@ -36,34 +36,34 @@ func (e *Echo) SetEnv(name, value string) *Echo {
 //
 // Note that session vars are only available
 // for the running process.
-func (e *Echo) Vars(variables ...string) *Echo {
+func (e *Session) Vars(variables ...string) *Session {
 	vars := e.vars.Vars(variables...)
 	e.err = vars.Err()
 	return e
 }
 
 // SetVar declares a session variable.
-func (e *Echo) SetVar(name, value string) *Echo {
+func (e *Session) SetVar(name, value string) *Session {
 	vars := e.vars.SetVar(name, value)
 	e.err = vars.Err()
 	return e
 }
 
 // UnsetVar removes a session variable.
-func (e *Echo) UnsetVar(name string) *Echo {
+func (e *Session) UnsetVar(name string) *Session {
 	vars := e.vars.UnsetVar(name)
 	e.err = vars.Err()
 	return e
 }
 
 // Val retrieves a session or environment variable
-func (e *Echo) Val(name string) string {
+func (e *Session) Val(name string) string {
 	return e.vars.Val(name)
 }
 
 // Eval returns the string str with its content expanded
 // with variable values i.e. Eval("I am $HOME") returns
 // "I am </user/home/path>"
-func (e *Echo) Eval(str string) string {
+func (e *Session) Eval(str string) string {
 	return e.vars.Eval(str)
 }

@@ -1,12 +1,10 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/vladimirvivien/gexe.svg)](https://pkg.go.dev/github.com/vladimirvivien/gexe)
-[![Go Report Card](https://goreportcard.com/badge/github.com/vladimirvivien/echo)](https://goreportcard.com/report/github.com/vladimirvivien/echo)
+[![Go Report Card](https://goreportcard.com/badge/github.com/vladimirvivien/gexe)](https://goreportcard.com/report/github.com/vladimirvivien/gexe)
 ![Build](https://github.com/vladimirvivien/gexe/actions/workflows/build.yml/badge.svg)
 # Project `gexe`
 Package with script-like API for system operation and automation!
 
 The goal of project `gexe` is to make it simple to write code for system operation and task automation using a script-like API that offers the security and the type safety of the Go programming language (see [/examples](/examples/)).
-
-> NOTE: this project got renamed from Echo to Gexe (see Project Name Change)
 
 ## What can you do with `gexe`?
 * Parse and execute OS plain text commands, as you would in a shell.
@@ -63,7 +61,7 @@ func main() {
 				fmt.Printf("Build for %s/%s failed: %s\n", arch, opsys, result)
 				os.Exit(1)
 			}
-			fmt.Printf("Build %s/%s: %s OK\n", arch, opsys, echo.Eval("$binpath"))
+			fmt.Printf("Build %s/%s: %s OK\n", arch, opsys, gexe.Eval("$binpath"))
 		}
 	}
 }
