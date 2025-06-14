@@ -9,6 +9,7 @@ The goal of project `gexe` is to make it simple to write code for system operati
 ## What can you do with `gexe`?
 * Parse and execute OS plain text commands, as you would in a shell.
 * Support for variable expansion in command string (i.e. `gexe.Run("echo $HOME")`)
+* Support for Go's `fmt.Sprintf` formatting in all string parameters (i.e. `gexe.Run("echo %s", "Hello")`)
 * Ability to pipe processes: `gexe.Pipe("cat /etc/hosts", "wc -l")`
 * Run processes concurrently: `gexe.RunConcur('wget https://example.com/files'; "date")`
 * Get process information (i.e. PID, status, exit code, etc)
@@ -40,6 +41,23 @@ if proc.Err() != nil {
 }
 fmt.Println(proc.Result())
 ```
+
+### String formatting with Go's fmt syntax
+`gexe` methods now support Go's `fmt.Sprintf` formatting alongside variable expansion:
+
+```go
+// Using Go formatting with variable expansion
+gexe.SetVar("name", "Alice")
+gexe.Run("echo Hello %s, your home is ${HOME}", "World")
+
+// File operations with formatting
+gexe.FileWrite("/tmp/log_%s.txt", time.Now().Format("2006-01-02"))
+
+// Variable setting with formatting
+gexe.SetVar("message", "User %s logged in at %s", username, timestamp)
+```
+
+The formatting is applied intelligently - if no format verbs are detected in the string, the arguments are ignored, maintaining backward compatibility.
 
 ## Examples
 Find more examples [here](./examples/)!
