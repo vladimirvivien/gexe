@@ -8,7 +8,7 @@ import (
 )
 
 // HttpGetWithContext uses context ctx to start an HTTP GET operation to retrieve server resource from given URL/paths.
-func (e *Echo) HttpGetWithContext(ctx context.Context, url string, paths ...string) *http.ResourceReader {
+func (e *Session) HttpGetWithContext(ctx context.Context, url string, paths ...string) *http.ResourceReader {
 	var exapandedUrl strings.Builder
 	exapandedUrl.WriteString(e.vars.Eval(url))
 	for _, path := range paths {
@@ -18,12 +18,12 @@ func (e *Echo) HttpGetWithContext(ctx context.Context, url string, paths ...stri
 }
 
 // HttpGetWithContext starts an HTTP GET operation to retrieve server resource from given URL/paths.
-func (e *Echo) HttpGet(url string, paths ...string) *http.ResourceReader {
+func (e *Session) HttpGet(url string, paths ...string) *http.ResourceReader {
 	return e.HttpGetWithContext(context.Background(), url, paths...)
 }
 
 // HttpPostWithContext uses context ctx to start an HTTP POST operation to post resource to a server at given URL/path.
-func (e *Echo) HttpPostWithContext(ctx context.Context, url string, paths ...string) *http.ResourceWriter {
+func (e *Session) HttpPostWithContext(ctx context.Context, url string, paths ...string) *http.ResourceWriter {
 	var exapandedUrl strings.Builder
 	exapandedUrl.WriteString(e.vars.Eval(url))
 	for _, path := range paths {
@@ -33,16 +33,16 @@ func (e *Echo) HttpPostWithContext(ctx context.Context, url string, paths ...str
 }
 
 // HttpPost starts an HTTP POST operation to post resource to a server at given URL/path.
-func (e *Echo) HttpPost(url string, paths ...string) *http.ResourceWriter {
+func (e *Session) HttpPost(url string, paths ...string) *http.ResourceWriter {
 	return e.HttpPostWithContext(context.Background(), url, paths...)
 }
 
 // Get is convenient alias for HttpGet to retrieve a resource at given URL/path
-func (e *Echo) Get(url string, paths ...string) *http.Response {
+func (e *Session) Get(url string, paths ...string) *http.Response {
 	return e.HttpGet(url, paths...).Do()
 }
 
 // Post is a convenient alias for HttpPost to post the specified data to given URL/path
-func (e *Echo) Post(data []byte, url string, paths ...string) *http.Response {
+func (e *Session) Post(data []byte, url string, paths ...string) *http.Response {
 	return e.HttpPost(url, paths...).Bytes(data).Do()
 }
