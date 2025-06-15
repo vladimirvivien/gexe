@@ -29,8 +29,8 @@ func Envs(val ...string) *Session {
 }
 
 // SetEnv sets a process environment variable.
-func SetEnv(name, value string) *Session {
-	return DefaultSession.SetEnv(name, value)
+func SetEnv(name, value string, args ...interface{}) *Session {
+	return DefaultSession.SetEnv(name, value, args...)
 }
 
 // Vars declares multiple session-scope variables using
@@ -45,8 +45,8 @@ func Vars(variables ...string) *Session {
 }
 
 // SetVar declares a session variable.
-func SetVar(name, value string) *Session {
-	return DefaultSession.SetVar(name, value)
+func SetVar(name, value string, args ...interface{}) *Session {
+	return DefaultSession.SetVar(name, value, args...)
 }
 
 // Val retrieves a session or environment variable
@@ -57,60 +57,60 @@ func Val(name string) string {
 // Eval returns the string str with its content expanded
 // with variable values i.e. Eval("I am $HOME") returns
 // "I am </user/home/path>"
-func Eval(str string) string {
-	return DefaultSession.Eval(str)
+func Eval(str string, args ...interface{}) string {
+	return DefaultSession.Eval(str, args...)
 }
 
 // NewProcWithContext setups a new process with specified context and command cmdStr and returns immediately
 // without starting. Information about the running process is stored in *exec.Proc.
-func NewProcWithContext(ctx context.Context, cmdStr string) *exec.Proc {
-	return DefaultSession.NewProcWithContext(ctx, cmdStr)
+func NewProcWithContext(ctx context.Context, cmdStr string, args ...interface{}) *exec.Proc {
+	return DefaultSession.NewProcWithContext(ctx, cmdStr, args...)
 }
 
 // NewProc setups a new process with specified command cmdStr and returns immediately
 // without starting. Information about the running process is stored in *exec.Proc.
-func NewProc(cmdStr string) *exec.Proc {
-	return DefaultSession.NewProcWithContext(context.Background(), cmdStr)
+func NewProc(cmdStr string, args ...interface{}) *exec.Proc {
+	return DefaultSession.NewProcWithContext(context.Background(), cmdStr, args...)
 }
 
 // StartProcWith executes the command in cmdStr with the specified contex and returns immediately
 // without waiting. Information about the running process is stored in *exec.Proc.
-func StartProcWithContext(ctx context.Context, cmdStr string) *exec.Proc {
-	return DefaultSession.StartProcWithContext(ctx, cmdStr)
+func StartProcWithContext(ctx context.Context, cmdStr string, args ...interface{}) *exec.Proc {
+	return DefaultSession.StartProcWithContext(ctx, cmdStr, args...)
 }
 
 // StartProc executes the command in cmdStr and returns immediately
 // without waiting. Information about the running process is stored in *exec.Proc.
-func StartProc(cmdStr string) *exec.Proc {
-	return DefaultSession.StartProc(cmdStr)
+func StartProc(cmdStr string, args ...interface{}) *exec.Proc {
+	return DefaultSession.StartProc(cmdStr, args...)
 }
 
 // RunProcWithContext executes command in cmdStr, with specified ctx, and waits for the result.
 // It returns a *Proc with information about the executed process.
-func RunProcWithContext(ctx context.Context, cmdStr string) *exec.Proc {
-	return DefaultSession.RunProc(cmdStr)
+func RunProcWithContext(ctx context.Context, cmdStr string, args ...interface{}) *exec.Proc {
+	return DefaultSession.RunProcWithContext(ctx, cmdStr, args...)
 }
 
 // RunProc executes command in cmdStr and waits for the result.
 // It returns a *Proc with information about the executed process.
-func RunProc(cmdStr string) *exec.Proc {
-	return DefaultSession.RunProc(cmdStr)
+func RunProc(cmdStr string, args ...interface{}) *exec.Proc {
+	return DefaultSession.RunProc(cmdStr, args...)
 }
 
 // RunWithContext executes cmdStr, with specified context, and waits for completion.
 // It returns the result as a string.
-func RunWithContext(ctx context.Context, cmdStr string) string {
-	return DefaultSession.RunWithContext(ctx, cmdStr)
+func RunWithContext(ctx context.Context, cmdStr string, args ...interface{}) string {
+	return DefaultSession.RunWithContext(ctx, cmdStr, args...)
 }
 
 // Run executes cmdStr, waits, and returns the result as a string.
-func Run(cmdStr string) string {
-	return DefaultSession.Run(cmdStr)
+func Run(cmdStr string, args ...interface{}) string {
+	return DefaultSession.Run(cmdStr, args...)
 }
 
 // Runout executes command cmdStr and prints out the result
-func Runout(cmdStr string) {
-	DefaultSession.Runout(cmdStr)
+func Runout(cmdStr string, args ...interface{}) {
+	DefaultSession.Runout(cmdStr, args...)
 }
 
 // Commands returns a *exe.CommandBuilder to build a multi-command execution flow.
@@ -150,48 +150,48 @@ func Pipe(cmdStrs ...string) *exec.PipedCommandResult {
 
 // PathExists returns true if specified path exists.
 // Any error will cause it to return false.
-func PathExists(path string) bool {
-	return DefaultSession.PathExists(path)
+func PathExists(path string, args ...interface{}) bool {
+	return DefaultSession.PathExists(path, args...)
 }
 
 // PathInfo returns information for specified path (i.e. size, etc)
-func PathInfo(path string) *fs.FSInfo {
-	return DefaultSession.PathInfo(path)
+func PathInfo(path string, args ...interface{}) *fs.FSInfo {
+	return DefaultSession.PathInfo(path, args...)
 }
 
 // MkDirs creates one or more directories along the specified path
-func MkDirs(path string, mode os.FileMode) *fs.FSInfo {
-	return DefaultSession.MkDir(path, mode)
+func MkDirs(path string, mode os.FileMode, args ...interface{}) *fs.FSInfo {
+	return DefaultSession.MkDir(path, mode, args...)
 }
 
 // MkDir creates a directory with default mode 0744
-func MkDir(path string) *fs.FSInfo {
-	return DefaultSession.MkDir(path, 0744)
+func MkDir(path string, args ...interface{}) *fs.FSInfo {
+	return DefaultSession.MkDir(path, 0744, args...)
 }
 
 // RmPath removes files or directories along specified path
-func RmPath(path string) *fs.FSInfo {
-	return DefaultSession.RmPath(path)
+func RmPath(path string, args ...interface{}) *fs.FSInfo {
+	return DefaultSession.RmPath(path, args...)
 }
 
 // FileRead uses context ctx to read file content from path
-func FileReadWithContext(ctx context.Context, path string) *fs.FileReader {
-	return DefaultSession.FileReadWithContext(ctx, path)
+func FileReadWithContext(ctx context.Context, path string, args ...interface{}) *fs.FileReader {
+	return DefaultSession.FileReadWithContext(ctx, path, args...)
 }
 
 // FileRead provides methods to read file content from path
-func FileRead(path string) *fs.FileReader {
-	return DefaultSession.FileReadWithContext(context.Background(), path)
+func FileRead(path string, args ...interface{}) *fs.FileReader {
+	return DefaultSession.FileReadWithContext(context.Background(), path, args...)
 }
 
 // FileWriteWithContext uses context ctx to write file content to path
-func FileWriteWithContext(ctx context.Context, path string) *fs.FileWriter {
-	return DefaultSession.FileWriteWithContext(ctx, path)
+func FileWriteWithContext(ctx context.Context, path string, args ...interface{}) *fs.FileWriter {
+	return DefaultSession.FileWriteWithContext(ctx, path, args...)
 }
 
 // FileWrite provides methods to write file content to path
-func FileWrite(path string) *fs.FileWriter {
-	return DefaultSession.FileWriteWithContext(context.Background(), path)
+func FileWrite(path string, args ...interface{}) *fs.FileWriter {
+	return DefaultSession.FileWriteWithContext(context.Background(), path, args...)
 }
 
 // HttpGetWithContext uses context ctx to start an HTTP GET operation to retrieve resource at URL/path
@@ -230,8 +230,8 @@ func Prog() *prog.Info {
 }
 
 // ProgAvail returns the full path of the program if available.
-func ProgAvail(program string) string {
-	return DefaultSession.ProgAvail(program)
+func ProgAvail(program string, args ...interface{}) string {
+	return DefaultSession.ProgAvail(program, args...)
 }
 
 // Workdir returns the current program's working directory
@@ -244,6 +244,6 @@ func AddExecPath(execPath string) {
 	DefaultSession.AddExecPath(execPath)
 }
 
-func String(s string) *str.Str {
-	return DefaultSession.String(s)
+func String(s string, args ...interface{}) *str.Str {
+	return DefaultSession.String(s, args...)
 }
