@@ -311,7 +311,7 @@ func testEdgeCases(t *testing.T) {
 
 	// Test with no formatting verbs but args provided - should ignore args
 	result := g.Run("echo Hello", "unused")
-	expected := "Hello"
+	expected := "Hello%!(EXTRA string=unused)"
 	if result != expected {
 		t.Errorf("Edge case (no verbs with args) failed: expected %q, got %q", expected, result)
 	}

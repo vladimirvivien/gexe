@@ -45,7 +45,7 @@ func (e *Session) AddExecPath(execPath string) {
 
 // ProgAvail returns the full path of the program if found on exec PATH
 func (e *Session) ProgAvail(progName string, args ...interface{}) string {
-	progName = applySprintfIfNeeded(progName, args...)
+	progName = applyFmt(progName, args...)
 	path, err := exec.LookPath(e.Eval(progName))
 	if err != nil {
 		return ""
