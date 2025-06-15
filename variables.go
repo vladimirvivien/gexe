@@ -24,7 +24,7 @@ func (e *Session) Envs(variables ...string) *Session {
 
 // SetEnv sets a global process environment variable.
 func (e *Session) SetEnv(name, value string, args ...interface{}) *Session {
-	value = applySprintfIfNeeded(value, args...)
+	value = applyFmt(value, args...)
 	vars := e.vars.SetEnv(name, value)
 	e.err = vars.Err()
 	return e
@@ -45,7 +45,7 @@ func (e *Session) Vars(variables ...string) *Session {
 
 // SetVar declares a session variable.
 func (e *Session) SetVar(name, value string, args ...interface{}) *Session {
-	value = applySprintfIfNeeded(value, args...)
+	value = applyFmt(value, args...)
 	vars := e.vars.SetVar(name, value)
 	e.err = vars.Err()
 	return e
@@ -67,6 +67,6 @@ func (e *Session) Val(name string) string {
 // with variable values i.e. Eval("I am $HOME") returns
 // "I am </user/home/path>"
 func (e *Session) Eval(str string, args ...interface{}) string {
-	str = applySprintfIfNeeded(str, args...)
+	str = applyFmt(str, args...)
 	return e.vars.Eval(str)
 }

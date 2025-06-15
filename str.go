@@ -6,6 +6,6 @@ import (
 
 // String creates a new str.Str value with string manipulation methods
 func (e *Session) String(s string, args ...interface{}) *str.Str {
-	s = applySprintfIfNeeded(s, args...)
+	s = applyFmt(s, args...)
 	return str.StringWithVars(s, e.vars)
 }
