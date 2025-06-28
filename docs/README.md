@@ -36,6 +36,7 @@ gexe.PathExists("/tmp/myfile")
 gexe.Mkdir("/tmp/myapp")
 gexe.FileWrite("/tmp/myapp/myfile.txt").String(gexe.Run(`echo "Hello World!"`))
 gexe.Get("https://somehost/someresource").String()
+gexe.Error("Failed to process %s in ${HOME}", filename)
 // ... etc
 ```
 See all top-level functions in [functions.go](../functions.go).

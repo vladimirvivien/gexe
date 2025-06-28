@@ -55,6 +55,9 @@ gexe.FileWrite("/tmp/log_%s.txt", time.Now().Format("2006-01-02"))
 
 // Variable setting with formatting
 gexe.SetVar("message", "User %s logged in at %s", username, timestamp)
+
+// Error creation with formatting and variable expansion
+err := gexe.Error("Failed to process %s in ${HOME}", filename)
 ```
 
 The formatting is applied intelligently - if no format verbs are detected in the string, the arguments are ignored, maintaining backward compatibility.

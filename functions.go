@@ -282,3 +282,15 @@ func Println(format string, args ...interface{}) *Session {
 func PrintTo(w io.Writer, format string, args ...interface{}) *Session {
 	return DefaultSession.PrintTo(w, format, args...)
 }
+
+// Error creates and returns an error with the formatted string.
+// The string supports both Go's fmt.Sprintf formatting and gexe variable expansion.
+// Variables are expanded using ${VAR} or $VAR syntax.
+//
+// Example:
+//
+//	err := gexe.Error("Failed to process %s in ${HOME}", filename)
+//	return err
+func Error(format string, args ...interface{}) error {
+	return DefaultSession.Error(format, args...)
+}
