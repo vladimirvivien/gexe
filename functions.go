@@ -2,6 +2,7 @@ package gexe
 
 import (
 	"context"
+	"io"
 	"os"
 
 	"github.com/vladimirvivien/gexe/exec"
@@ -246,4 +247,38 @@ func AddExecPath(execPath string) {
 
 func String(s string, args ...interface{}) *str.Str {
 	return DefaultSession.String(s, args...)
+}
+
+// Print outputs the formatted string to stdout without a newline.
+// The string supports both Go's fmt.Sprintf formatting and gexe variable expansion.
+// Variables are expanded using ${VAR} or $VAR syntax.
+//
+// Example:
+//
+//	gexe.Print("Processing %s in ${HOME}", filename)
+func Print(format string, args ...interface{}) *Session {
+	return DefaultSession.Print(format, args...)
+}
+
+// Println outputs the formatted string to stdout with a trailing newline.
+// The string supports both Go's fmt.Sprintf formatting and gexe variable expansion.
+// Variables are expanded using ${VAR} or $VAR syntax.
+//
+// Example:
+//
+//	gexe.Println("User ${USER} logged in at %s", timestamp)
+func Println(format string, args ...interface{}) *Session {
+	return DefaultSession.Println(format, args...)
+}
+
+// PrintTo outputs the formatted string to the specified writer.
+// The string supports both Go's fmt.Sprintf formatting and gexe variable expansion.
+// Variables are expanded using ${VAR} or $VAR syntax.
+//
+// Example:
+//
+//	var buf bytes.Buffer
+//	gexe.PrintTo(&buf, "Log: ${USER} performed %s", action)
+func PrintTo(w io.Writer, format string, args ...interface{}) *Session {
+	return DefaultSession.PrintTo(w, format, args...)
 }
