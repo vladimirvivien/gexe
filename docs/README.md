@@ -288,3 +288,31 @@ gexe.Run(`echo "Building OS: $GOOS; ARC: $GOARCH"`)
 gexe.SetEnv("GOOS","linux").SetEnv("GOARCH","amd64")
 gexe.Run(fmt.Sprintf(`echo "Building OS: %s ARC: %s"`, gexe.Val("GOOS"), gexe.Val("GOARCH")))
 ```
+
+---
+
+## String and Path Operations
+
+The `gexe` package provides convenient methods for joining strings and paths with automatic variable expansion.
+
+### Joining strings with variable expansion
+
+The `Join` method uses Go's `strings.Join` to concatenate strings with a specified separator while applying variable expansion to each element:
+
+```go
+gexe.SetVar("USER", "john")
+gexe.SetVar("DOMAIN", "example.com")
+email := gexe.Join("@", "${USER}", "${DOMAIN}")
+fmt.Println(email) // Output: john@example.com
+```
+
+### Joining paths with variable expansion
+
+The `JoinPath` method uses Go's `filepath.Join` to construct file paths with OS-specific separators while applying variable expansion to each element:
+
+```go
+gexe.SetVar("HOME", "/home/user")
+gexe.SetVar("PROJECT", "myapp")
+configPath := gexe.JoinPath("${HOME}", "workspace", "${PROJECT}", "config", "settings.json")
+fmt.Println(configPath) 
+```
