@@ -294,3 +294,27 @@ func PrintTo(w io.Writer, format string, args ...interface{}) *Session {
 func Error(format string, args ...interface{}) error {
 	return DefaultSession.Error(format, args...)
 }
+
+// Join uses strings.Join to join arbitrary strings with a separator
+// while applying gexe variable expansion to each element.
+//
+// Example:
+//
+//	gexe.SetVar("HOME", "/home/user")
+//	result := gexe.Join(",", "${HOME}", "documents", "file.txt")
+//	// Returns: "/home/user,documents,file.txt"
+func Join(sep string, elem ...string) string {
+	return DefaultSession.Join(sep, elem...)
+}
+
+// JoinPath uses filepath.Join to join file paths using OS-specific path separators
+// while applying gexe variable expansion to each element.
+//
+// Example:
+//
+//	gexe.SetVar("HOME", "/home/user")
+//	path := gexe.JoinPath("${HOME}", "documents", "file.txt")
+//	// Returns: "/home/user/documents/file.txt" (Unix) or "C:\Users\user\documents\file.txt" (Windows)
+func JoinPath(elem ...string) string {
+	return DefaultSession.JoinPath(elem...)
+}

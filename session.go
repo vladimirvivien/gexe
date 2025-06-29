@@ -28,7 +28,7 @@ type Session struct {
 	prog *prog.Info
 }
 
-// New creates a new Echo session
+// New creates a new Gexe session
 func New() *Session {
 	e := &Session{
 		vars: vars.New(),
